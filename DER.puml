@@ -107,8 +107,8 @@ Compra_Total
 }
 
 entity Detalle_Compra{
-+Compra_Nro <<FK>>
-+Compra_Material <<FK>>
++Detalle_Compra_Nro <<FK>>
++Detalle_Compra_Material <<FK>>
 --
 Detalle_Compra_Precio
 Detalle_Compra_Cantidad
