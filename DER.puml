@@ -11,23 +11,23 @@ Sucursal_Mail
 }
 
 entity Domicilio{
-    +Domicilio_ID
-    --
-    Domicilio_Direccion
-    Domicilio_Localidad <<FK>>
++Domicilio_ID
+--
+Domicilio_Direccion
+Domicilio_Localidad <<FK>>
 }
 
 entity Localidad{
-    +Localidad_ID
-    --
-    Localidad_Nombre
-    Localidad_Provincia <<FK>>
++Localidad_ID
+--
+Localidad_Nombre
+Localidad_Provincia <<FK>>
 }
 
 entity Provincia{
-    +Provincia_ID
-    --
-    Provincia_Nombre
++Provincia_ID
+--
+Provincia_Nombre
 }
 
 entity Cliente{
