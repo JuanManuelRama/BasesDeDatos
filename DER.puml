@@ -109,8 +109,8 @@ entity Detalle_Compra{
 +Compra_Nro <<FK>>
 +Compra_Material <<FK>>
 --
-Compra_Precio
-Compra_Cantidad
+Detalle_Compra_Precio
+Detalle_Compra_Cantidad
 }
 
 entity Proveedor{
