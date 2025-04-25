@@ -56,6 +56,7 @@ entity Pedido_Detalle{
 --
 Detalle_Pedido_Cantidad
 Detalle_Pedido_Precio
+Detalle_Pedido_Subtotal
 }
 
 entity Pedido_Cancelacion{
@@ -72,6 +73,7 @@ Factura_Cliente <<FK>>
 Factura_Sucursal <<FK>>
 Factura_Pedido<<FK>>
 Factura_Fecha
+Factura_Total
 }
 
 entity Envio{
@@ -82,6 +84,7 @@ Envio_Fecha_Programada
 Envio_Fecha_Entrega
 Envio_Importe_Translado
 Envio_Importe_Subida
+Envio_Total
 }
 
 entity Compra{
@@ -90,6 +93,7 @@ entity Compra{
 Compra_Sucursal <<FK>>
 Compra_Proveedor <<FK>>
 Compra_Fecha
+Compra_Total
 }
 
 entity Detalle_Compra{
