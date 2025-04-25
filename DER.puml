@@ -48,6 +48,7 @@ Pedido_Sucursal <<FK>>
 Pedido_Cliente <<FK>>
 Pedido_Fecha
 Pedido_Estado
+Pedido_Total
 }
 
 entity Pedido_Detalle{
@@ -111,6 +112,7 @@ entity Detalle_Compra{
 --
 Detalle_Compra_Precio
 Detalle_Compra_Cantidad
+Detalle_Compra_Subtotal
 }
 
 entity Proveedor{
