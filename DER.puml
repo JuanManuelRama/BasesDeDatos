@@ -67,7 +67,7 @@ Cancelacion_Motivo
 }
 
 entity Factura{
-+Factura_Numero <<FK>>
++Factura_Numero
 --
 Factura_Cliente <<FK>>
 Factura_Sucursal <<FK>>
