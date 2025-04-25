@@ -3,7 +3,7 @@
 hide methods
 
 entity Sucursal{
-Sucursal_Nro
++Sucursal_Nro
 --
 Sucursal_Domicilio
 Sucursal_telefono
@@ -11,27 +11,27 @@ Sucursal_Mail
 }
 
 entity Domicilio{
-Domicilio_ID
++Domicilio_ID
 --
 Domicilio_Direccion
 Domicilio_Localidad <<FK>>
 }
 
 entity Localidad{
-Localidad_ID
++Localidad_ID
 --
 Localidad_Nombre
 Localidad_Provincia <<FK>>
 }
 
 entity Provincia{
-Provincia_ID
++Provincia_ID
 --
 Provincia_Nombre
 }
 
 entity Cliente{
-Cliente_Dni
++Cliente_Dni
 --
 Cliente_Domicilio
 Cliente_Nombre
@@ -42,18 +42,17 @@ Cliente_Mail
 }
 
 entity Pedido{
-Pedido_Numero
++Pedido_Numero
 --
 Pedido_Sucursal <<FK>>
 Pedido_Cliente <<FK>>
 Pedido_Fecha
 Pedido_Estado
-Pedido_Total
 }
 
 entity Pedido_Detalle{
-Pedido_Numero <<FK>>
-Sillon_Modelo <<FK>>
++Pedido_Numero <<FK>>
++Sillon_Modelo <<FK>>
 --
 Detalle_Pedido_Cantidad
 Detalle_Pedido_Precio
@@ -61,14 +60,14 @@ Detalle_Pedido_Subtotal
 }
 
 entity Pedido_Cancelacion{
-Cancelacion_Pedido <<FK>>
++Cancelacion_Pedido <<FK>>
 --
 Cancelacion_Fecha
 Cancelacion_Motivo
 }
 
 entity Factura{
-Factura_Numero
++Factura_Numero
 --
 Factura_Cliente <<FK>>
 Factura_Sucursal <<FK>>
@@ -78,8 +77,8 @@ Factura_Total
 }
 
 entity Detalle_Factura{
-Detalle_Factura_Numero <<FK>>
-Detalle_Factura_Sillon <<FK>>
++Detalle_Factura_Numero <<FK>>
++Detalle_Factura_Sillon <<FK>>
 --
 Detalle_Factura_Precio
 Detalle_Factura_Cantidad
@@ -87,18 +86,17 @@ Detalle_Factura_SubTotal
 }
 
 entity Envio{
-Envio_Nro
++Envio_Nro
 --
 Envio_Factura <<FK>>
 Envio_Fecha_Programada
 Envio_Fecha_Entrega
 Envio_Importe_Translado
 Envio_Importe_Subida
-Envio_Total
 }
 
 entity Compra{
-Compra_Nro
++Compra_Nro
 --
 Compra_Sucursal <<FK>>
 Compra_Proveedor <<FK>>
@@ -107,16 +105,15 @@ Compra_Total
 }
 
 entity Detalle_Compra{
-Detalle_Compra_Nro <<FK>>
-Detalle_Compra_Material <<FK>>
++Compra_Nro <<FK>>
++Compra_Material <<FK>>
 --
-Detalle_Compra_Precio
-Detalle_Compra_Cantidad
-Detalle_Compra_Subtotal
+Compra_Precio
+Compra_Cantidad
 }
 
 entity Proveedor{
-Proveedor_CUIT
++Proveedor_CUIT
 --
 Proveedor_Razon_Social
 Proveedor_Domicilio
@@ -125,17 +122,19 @@ Proveedor_Mail
 }
 
 entity Sillon{
-Sillon_Codigo
++Sillon_Codigo
 --
 Sillon_Modelo<<FK>>
 Sillon_Medida<<FK>>
-Sillon Madera <<FK>>
-Sillon_Tela <<FK>>
-Sillon_Relleno <<FK>>
+}
+
+entity Sillon_Material{
++Sillon_Codigo
++Material_ID
 }
 
 entity Modelo{
-Modelo_Codigo
++Modelo_Codigo
 --
 Modelo_Nombre
 Modelo_Descripcion
@@ -143,7 +142,7 @@ Modelo_Precio
 }
 
 entity Medida{
-Medida_ID
++Medida_ID
 --
 Medida_Alto
 Medida_Ancho
@@ -152,51 +151,48 @@ Medida_Precio
 }
 
 entity Tela{
-Tela_ID <<FK>>
++Tela_ID <<FK>>
 --
 Tela_Color
 Tela_Textura
-Teña_Precio
 }
 
 entity Relleno{
-Relleno_ID <<FK>>
++Relleno_ID <<FK>>
 --
 Relleno_Densidad
-Relleno_Precio
 }
 
 entity Madera{
-Madera_ID <<FK>>
++Madera_ID <<FK>>
 --
 Madera_Color
 Madera_Dureza
-Madera_Precio
 }
 
 entity Material{
-Material_ID
++Material_ID
 --
 Material_Tipo
+Material_Nombre
+Material_Descripcion
+Material_Precio
 }
 
 Proveedor ||--o{ Compra
 Compra ||--|{ Detalle_Compra
 Sucursal ||--o{ Compra
 Sucursal ||--o{ Pedido
-Sucursal ||--o{ Factura
 Pedido ||--|{ Pedido_Detalle
 Cliente ||--o{ Pedido
 Envio ||--|| Factura
-Cliente ||--o{ Factura
 Pedido||--o| Pedido_Cancelacion
 Modelo ||--o{Sillon
 Medida ||--o{Sillon
-Tela ||--o{Sillon
-Relleno ||--o{Sillon
-Madera ||--o{Sillon
 Sillon ||--o{ Pedido_Detalle
 Sillon ||--o{ Detalle_Factura
+Sillon ||--{ Sillon_Material
+Sillon_Material ||--|{ Material
 Pedido ||--o| Factura
 Factura ||--|{Detalle_Factura
 Material ||--o{Detalle_Compra
@@ -208,9 +204,9 @@ Provincia||--|{Localidad
 Domicilio ||--o{Cliente
 Domicilio ||--o{Proveedor
 Domicilio ||--o{Sucursal
-@enduml
 
 'Preguntas:
-'Estaría bien que Factura no tenga cliente ni sucursal, ya que asumimos que es la misma que el pedido?
-'Estría bienque Sillon tenga n Materiales?
+'Esta bien que Factura no tenga cliente ni sucursal, ya que asumimos que es la misma que el pedido?
+'Está bienque Sillon tenga n Materiales?
 'Es necesario incluir los calculables "básicos" como el subtotal de un detalle o el total de envío?
+@enduml
