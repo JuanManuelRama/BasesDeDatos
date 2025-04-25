@@ -78,8 +78,8 @@ Factura_Total
 }
 
 entity Detalle_Factura{
-+Detalle_Factura_Numero
-+Detalle_Factura_Sillon
++Detalle_Factura_Numero <<FK>>
++Detalle_Factura_Sillon <<FK>>
 --
 Detalle_Factura_Precio
 Detalle_Factura_Cantidad
