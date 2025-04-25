@@ -191,6 +191,4 @@ Provincia||--|{Localidad
 Domicilio ||--o{Cliente
 Domicilio ||--o{Proveedor
 Domicilio ||--o{Sucursal
-
- 'Detalle_Pedido_Precio es igual al Detalle_Factura_Precio de su factura asociada, está bien asumir que ese siempre será el caso
 @enduml
