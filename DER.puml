@@ -209,3 +209,8 @@ Domicilio ||--o{Cliente
 Domicilio ||--o{Proveedor
 Domicilio ||--o{Sucursal
 @enduml
+
+'Preguntas:
+'Estaría bien que Factura no tenga cliente ni sucursal, ya que asumimos que es la misma que el pedido?
+'Estría bienque Sillon tenga n Materiales?
+'Es necesario incluir los calculables "básicos" como el subtotal de un detalle o el total de envío?
