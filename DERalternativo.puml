@@ -13,13 +13,13 @@ skinparam package {
 '=============================
 package " " {
   entity Provincia {
-    Provincia_ID <<auto>> : int
+    Provincia_ID <<auto>> : bigint
     --
     Provincia_Nombre : nvarchar(255)
   }
 
   entity Localidad {
-    Localidad_ID <<auto>> : int
+    Localidad_ID <<auto>> : bigint
     --
     Localidad_Nombre : nvarchar(255)
     Localidad_Provincia <<FK>>
@@ -32,7 +32,7 @@ package " " {
     Domicilio_Localidad <<FK>>
   }
 
-  Provincia ||--|{ Localidad
+  Provincia ||--o{ Localidad
   Localidad ||--o{ Domicilio
 }
 
@@ -64,20 +64,20 @@ package " " {
   }
 
   entity Tela {
-    Tela_ID <<FK>> : int
+    Tela_ID <<FK>>
     --
     Tela_Color : nvarchar(255)
     Tela_Textura : nvarchar(255)
   }
 
   entity Relleno {
-    Relleno_ID <<FK>> : int
+    Relleno_ID <<FK>>
     --
     Relleno_Densidad : decimal(38,2)
   }
 
   entity Madera {
-    Madera_ID <<FK>> : int
+    Madera_ID <<FK>>
     --
     Madera_Color : nvarchar(255)
     Madera_Dureza : nvarchar(255)
@@ -108,7 +108,7 @@ package " " {
     Cliente_ID <<auto>> : bigint
     --
     Cliente_DNI : bigint
-    Cliente_Domicilio : bigint
+    Cliente_Domicilio <<FK>>
     Cliente_Nombre : nvarchar(255)
     Cliente_Apellido : nvarchar(255)
     Cliente_Telefono : nvarchar(255)
@@ -121,7 +121,7 @@ package " " {
     --
     Proveedor_CUIT : nvarchar(255)
     Proveedor_Razon_Social : nvarchar(255)
-    Proveedor_Domicilio : int
+    Proveedor_Domicilio <<FK>>
     Proveedor_Telefono : nvarchar(255)
     Proveedor_Mail : nvarchar(255)
   }
@@ -149,8 +149,8 @@ package " " {
     Compra_Total : decimal(18,2)
   }
   entity Detalle_Compra {
-    Detalle_Compra_Nro <<FK>> : decimal
-    Detalle_Compra_Material <<FK>> : bigint
+    Detalle_Compra_Nro <<FK>>
+    Detalle_Compra_Material <<FK>>
     --
     Detalle_Compra_Precio : decimal(18,2)
     Detalle_Compra_Cantidad : decimal(18,0)
@@ -173,16 +173,16 @@ package " " {
     Pedido_Estado : nvarchar(255)
     Pedido_Total : decimal(18,2)
   }
-  entity Pedido_Detalle {
-    Pedido_Numero <<FK>> : decimal(18,0)
-    Sillon_Modelo <<FK>> : bigint
+  entity Detalle_Pedido {
+    Detalle_Pedido_Numero <<FK>>
+    Detalle_Sillon_Modelo <<FK>>
     --
     Detalle_Pedido_Cantidad : bigint
     Detalle_Pedido_Precio : decimal(18,2)
     Detalle_Pedido_Subtotal : decimal(18,2)
   }
   entity Pedido_Cancelacion {
-    Cancelacion_Pedido <<FK>> : decimal(18,0)
+    Cancelacion_Pedido <<FK>>
     --
     Cancelacion_Fecha : datetime2(6)
     Cancelacion_Motivo : varchar(255)
@@ -190,8 +190,8 @@ package " " {
 
   Cliente ||--o{ Pedido
   Sucursal ||--o{ Pedido
-  Pedido   ||--|{ Pedido_Detalle
-  Sillon   ||--o{ Pedido_Detalle
+  Pedido   ||--|{ Detalle_Pedido
+  Sillon   ||--o{ Detalle_Pedido
   Pedido   ||--o| Pedido_Cancelacion
 }
 
