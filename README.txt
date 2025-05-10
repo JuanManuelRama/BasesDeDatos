@@ -1,2 +1,3 @@
-# BasesDeDatos
-TP1C2025
+K3012
+7
+Lautaro Rizzitano 2132126

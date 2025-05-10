@@ -2,182 +2,184 @@
 !define ERD
 hide methods
 
-entity Sucursal{
-Sucursal_Nro
---
-Sucursal_Domicilio
-Sucursal_telefono
-Sucursal_Mail
+entity Sucursal {
+  Sucursal_Nro : bigint
+  --
+  Sucursal_Domicilio : int <<FK>>
+  Sucursal_Telefono : nvarchar(255)
+  Sucursal_Mail : nvarchar(255)
 }
 
-entity Domicilio{
-Domicilio_ID
---
-Domicilio_Direccion
-Domicilio_Localidad <<FK>>
+entity Domicilio {
+  Domicilio_ID <<auto>> : bigint
+  --
+  Domicilio_Direccion : nvarchar(255)
+  Domicilio_Localidad : int <<FK>>
 }
 
-entity Localidad{
-Localidad_ID
---
-Localidad_Nombre
-Localidad_Provincia <<FK>>
+entity Localidad {
+  Localidad_ID <<auto>> : int
+  --
+  Localidad_Nombre : nvarchar(255)
+  Localidad_Provincia : int <<FK>>
 }
 
-entity Provincia{
-Provincia_ID
---
-Provincia_Nombre
+entity Provincia {
+  Provincia_ID <<auto>> : int
+  --
+  Provincia_Nombre : nvarchar(255)
 }
 
-entity Cliente{
-Cliente_Dni
---
-Cliente_Domicilio
-Cliente_Nombre
-Cliente_Apellido
-Cliente_Telefono
-Cliente_FechaNacimiento
-Cliente_Mail
+entity Cliente {
+  Cliente_ID <<auto>> : bigint
+  --
+  Cliente_DNI : bigint
+  Cliente_Domicilio : int
+  Cliente_Nombre : nvarchar(255)
+  Cliente_Apellido : nvarchar(255)
+  Cliente_Telefono : nvarchar(255)
+  Cliente_FechaNacimiento : datetime2(6)
+  Cliente_Mail : nvarchar(255)
 }
 
-entity Pedido{
-Pedido_Numero
---
-Pedido_Sucursal <<FK>>
-Pedido_Cliente <<FK>>
-Pedido_Fecha
-Pedido_Estado
-Pedido_Total
+entity Pedido {
+  Pedido_Numero : decimal(18,0)
+  --
+  Pedido_Sucursal : bigint <<FK>>
+  Pedido_Cliente : bigint <<FK>>
+  Pedido_Fecha : datetime2(6)
+  Pedido_Estado : nvarchar(255)
+  Pedido_Total : decimal(18,2)
 }
 
-entity Pedido_Detalle{
-Pedido_Numero <<FK>>
-Sillon_Modelo <<FK>>
---
-Detalle_Pedido_Cantidad
-Detalle_Pedido_Precio
-Detalle_Pedido_Subtotal
+entity Pedido_Detalle {
+  Pedido_Numero : decimal(18,0) <<FK>>
+  Sillon_Modelo : bigint <<FK>>
+  --
+  Detalle_Pedido_Cantidad : bigint
+  Detalle_Pedido_Precio : decimal(18,2)
+  Detalle_Pedido_Subtotal : decimal(18,2)
 }
 
-entity Pedido_Cancelacion{
-Cancelacion_Pedido <<FK>>
---
-Cancelacion_Fecha
-Cancelacion_Motivo
+entity Pedido_Cancelacion {
+  Cancelacion_Pedido : decimal(18,0) <<FK>>
+  --
+  Cancelacion_Fecha : datetime2(6)
+  Cancelacion_Motivo : varchar(255)
 }
 
-entity Factura{
-Factura_Numero
---
-Factura_Cliente <<FK>>
-Factura_Sucursal <<FK>>
-Factura_Pedido<<FK>>
-Factura_Fecha
-Factura_Total
+entity Factura {
+  Factura_Numero : bigint
+  --
+  Factura_Cliente : bigint <<FK>>
+  Factura_Sucursal : bigint <<FK>>
+  Factura_Pedido : decimal(18,0) <<FK>>
+  Factura_Fecha : datetime2(6)
+  Factura_Total : decimal(38,2)
 }
 
-entity Detalle_Factura{
-Detalle_Factura_Numero <<FK>>
-Detalle_Factura_Sillon <<FK>>
---
-Detalle_Factura_Precio
-Detalle_Factura_Cantidad
-Detalle_Factura_SubTotal
+entity Detalle_Factura {
+  Detalle_Factura_Numero : bigint <<FK>>
+  Detalle_Factura_Sillon : bigint <<FK>>
+  --
+  Detalle_Factura_Precio : decimal(18,2)
+  Detalle_Factura_Cantidad : decimal(18,0)
+  Detalle_Factura_SubTotal : decimal(18,2)
 }
 
-entity Envio{
-Envio_Nro
---
-Envio_Factura <<FK>>
-Envio_Fecha_Programada
-Envio_Fecha_Entrega
-Envio_Importe_Translado
-Envio_Importe_Subida
-Envio_Total
+entity Envio {
+  Envio_Nro : decimal(18,0)
+  --
+  Envio_Factura : bigint <<FK>>
+  Envio_Fecha_Programada : datetime2(6)
+  Envio_Fecha_Entrega : datetime2(6)
+  Envio_Importe_Translado : decimal(18,2)
+  Envio_Importe_Subida : decimal(18,2)
+  Envio_Total : decimal(18,2)
 }
 
-entity Compra{
-Compra_Nro
---
-Compra_Sucursal <<FK>>
-Compra_Proveedor <<FK>>
-Compra_Fecha
-Compra_Total
+entity Compra {
+  Compra_Nro : decimal(18,0)
+  --
+  Compra_Sucursal : bigint <<FK>>
+  Compra_Proveedor : bigint <<FK>>
+  Compra_Fecha : datetime2(6)
+  Compra_Total : decimal(18,2)
 }
 
-entity Detalle_Compra{
-Detalle_Compra_Nro <<FK>>
-Detalle_Compra_Material <<FK>>
---
-Detalle_Compra_Precio
-Detalle_Compra_Cantidad
-Detalle_Compra_Subtotal
+entity Detalle_Compra {
+  Detalle_Compra_Nro : decimal <<FK>>
+  Detalle_Compra_Material : bigint <<FK>>
+  --
+  Detalle_Compra_Precio : decimal(18,2)
+  Detalle_Compra_Cantidad : decimal(18,0)
+  Detalle_Compra_Subtotal : decimal(18,2)
 }
 
-entity Proveedor{
-Proveedor_CUIT
---
-Proveedor_Razon_Social
-Proveedor_Domicilio
-Proveedor_Telefono
-Proveedor_Mail
+entity Proveedor {
+  Proveedor_ID <<auto>> : bigint
+  --
+  Proveedor_CUIT : nvarchar(255)
+  Proveedor_Razon_Social : nvarchar(255)
+  Proveedor_Domicilio : int
+  Proveedor_Telefono : nvarchar(255)
+  Proveedor_Mail : nvarchar(255)
 }
 
-entity Sillon{
-Sillon_Codigo
---
-Sillon_Modelo<<FK>>
-Sillon_Medida<<FK>>
-Sillon Madera <<FK>>
-Sillon_Tela <<FK>>
-Sillon_Relleno <<FK>>
+entity Sillon {
+  Sillon_Codigo : bigint
+  --
+  Sillon_Modelo : bigint <<FK>>
+  Sillon_Medida : int <<FK>>
+  Sillon_Madera : int <<FK>>
+  Sillon_Tela : int <<FK>>
+  Sillon_Relleno : int <<FK>>
 }
 
-entity Modelo{
-Modelo_Codigo
---
-Modelo_Nombre
-Modelo_Descripcion
-Modelo_Precio
+entity Modelo {
+  Modelo_Codigo : bigint
+  --
+  Modelo_Nombre : nvarchar(255)
+  Modelo_Descripcion : nvarchar(255)
+  Modelo_Precio : decimal(18,2)
 }
 
-entity Medida{
-Medida_ID
---
-Medida_Alto
-Medida_Ancho
-Medida_Profundidad
-Medida_Precio
+entity Medida {
+  Medida_ID <<auto>> : int
+  --
+  Medida_Alto : decimal(18,2)
+  Medida_Ancho : decimal(18,2)
+  Medida_Profundidad : decimal(18,2)
+  Medida_Precio : decimal(18,2)
 }
 
-entity Tela{
-Tela_ID <<FK>>
---
-Tela_Color
-Tela_Textura
-Teña_Precio
+entity Material {
+  Material_ID <<auto>> : bigint
+  --
+  Material_Tipo : nvarchar(255)
+  Material_Nombre : nvarchar(255)
+  Material_Descripcion : nvarchar(255)
+  Material_Precio : decimal(38,2)
 }
 
-entity Relleno{
-Relleno_ID <<FK>>
---
-Relleno_Densidad
-Relleno_Precio
+entity Tela {
+  Tela_ID : int <<FK>>
+  --
+  Tela_Color : nvarchar(255)
+  Tela_Textura : nvarchar(255)
 }
 
-entity Madera{
-Madera_ID <<FK>>
---
-Madera_Color
-Madera_Dureza
-Madera_Precio
+entity Relleno {
+  Relleno_ID : int <<FK>>
+  --
+  Relleno_Densidad : decimal(38,2)
 }
 
-entity Material{
-Material_ID
---
-Material_Tipo
+entity Madera {
+  Madera_ID : int <<FK>>
+  --
+  Madera_Color : nvarchar(255)
+  Madera_Dureza : nvarchar(255)
 }
 
 Proveedor ||--o{ Compra
@@ -189,28 +191,23 @@ Pedido ||--|{ Pedido_Detalle
 Cliente ||--o{ Pedido
 Envio ||--|| Factura
 Cliente ||--o{ Factura
-Pedido||--o| Pedido_Cancelacion
-Modelo ||--o{Sillon
-Medida ||--o{Sillon
-Tela ||--o{Sillon
-Relleno ||--o{Sillon
-Madera ||--o{Sillon
+Pedido ||--o| Pedido_Cancelacion
+Modelo ||--o{ Sillon
+Medida ||--o{ Sillon
+Tela ||--o{ Sillon
+Relleno ||--o{ Sillon
+Madera ||--o{ Sillon
 Sillon ||--o{ Pedido_Detalle
 Sillon ||--o{ Detalle_Factura
 Pedido ||--o| Factura
-Factura ||--|{Detalle_Factura
-Material ||--o{Detalle_Compra
+Factura ||--|{ Detalle_Factura
+Material ||--o{ Detalle_Compra
 Material -- Madera
 Material -- Tela
 Material -- Relleno
-Localidad||--|{Domicilio
-Provincia||--|{Localidad
-Domicilio ||--o{Cliente
-Domicilio ||--o{Proveedor
-Domicilio ||--o{Sucursal
+Localidad ||--|{ Domicilio
+Provincia ||--|{ Localidad
+Domicilio ||--o{ Cliente
+Domicilio ||--o{ Proveedor
+Domicilio ||--o{ Sucursal
 @enduml
-
-'Preguntas:
-'Estaría bien que Factura no tenga cliente ni sucursal, ya que asumimos que es la misma que el pedido?
-'Estría bienque Sillon tenga n Materiales?
-'Es necesario incluir los calculables "básicos" como el subtotal de un detalle o el total de envío?

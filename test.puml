@@ -1,17 +1,14 @@
 @startuml DER
 ' Orientación y estilo
 left to right direction
-hide methods
+skinparam packageStyle rectangle
 skinparam shadowing false
-skinparam packageBorderThickness 0
-skinparam package {
-  fontColor blue
-  stereotypeFontColor red
-}
+hide methods
+
 '=============================
 ' Paquetes de Dimensiones
 '=============================
-package " " {
+package "Geografía" {
   entity Provincia {
     Provincia_ID <<auto>> : int
     --
@@ -36,7 +33,7 @@ package " " {
   Localidad ||--o{ Domicilio
 }
 
-package " " {
+package "Productos" {
   entity Modelo {
     Modelo_Codigo : bigint
     --
@@ -95,15 +92,18 @@ package " " {
 
   Modelo    ||--o{ Sillon
   Medida    ||--o{ Sillon
-  Material  -- Tela
-  Material  -- Relleno
-  Material  -- Madera
+  Material  ||--o{ Tela
+  Material  ||--o{ Relleno
+  Material  ||--o{ Madera
   Tela      ||--o{ Sillon
   Relleno   ||--o{ Sillon
   Madera    ||--o{ Sillon
 }
 
-package " " {
+'=============================
+' Paquetes de Personas
+'=============================
+package "Clientes y Sucursales" {
   entity Cliente {
     Cliente_ID <<auto>> : bigint
     --
@@ -139,7 +139,10 @@ package " " {
   Domicilio ||--o{ Sucursal
 }
 
-package " " {
+'=============================
+' Paquetes de Transacciones
+'=============================
+package "Compras" {
   entity Compra {
     Compra_Nro : decimal(18,0)
     --
@@ -163,7 +166,7 @@ package " " {
   Material  ||--o{ Detalle_Compra
 }
 
-package " " {
+package "Ventas y Pedidos" {
   entity Pedido {
     Pedido_Numero : decimal(18,0)
     --
@@ -195,7 +198,7 @@ package " " {
   Pedido   ||--o| Pedido_Cancelacion
 }
 
-package " " {
+package "Facturación" {
   entity Factura {
     Factura_Numero : bigint
     --
