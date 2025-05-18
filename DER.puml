@@ -207,9 +207,9 @@ package " " {
     Factura_Total : decimal(38,2)
   }
   entity Detalle_Factura {
-    Detalle_Factura_Numero <<FK>> : bigint
-    Detalle_Factura_Sillon <<FK>> : bigint
+    Detalle_Factura_Pedido_Detalle <<FK>>
     --
+    Detalle_Factura_Numero <<FK>>
     Detalle_Factura_Precio : decimal(18,2)
     Detalle_Factura_Cantidad : decimal(18,0)
     Detalle_Factura_SubTotal : decimal(18,2)
