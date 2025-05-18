@@ -96,9 +96,9 @@ package " " {
 
   Sillon    }o--|| Modelo
   Sillon    }o--|| Medida
-  Tela  -- Material
-  Relleno  -- Material
-  Madera  -- Material
+  Tela      -- Material
+  Relleno   -- Material
+  Madera    -- Material
   Material  ||--o{ Sillon
   Material  ||--o{ Sillon
   Material  ||--o{ Sillon
@@ -189,7 +189,7 @@ package " " {
     Cancelacion_Motivo : varchar(255)
   }
 
-  Cliente ||--o{ Pedido
+  Cliente  ||--o{ Pedido
   Sucursal ||--o{ Pedido
   Pedido   ||--|{ Detalle_Pedido
   Sillon   ||--|| Detalle_Pedido
@@ -225,7 +225,7 @@ package " " {
     Envio_Total : decimal(18,2)
   }
 
-  Cliente ||--o{ Factura
+  Cliente  ||--o{ Factura
   Sucursal ||--o{ Factura
   Pedido   ||--o| Factura
   Factura  ||--|{ Detalle_Factura
