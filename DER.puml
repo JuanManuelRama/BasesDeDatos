@@ -178,6 +178,7 @@ package " " {
     Detalle_Pedido_Numero <<FK>>
     Detalle_Sillon_Modelo <<FK>>
     --
+    Detalle_Pedido_Numero <<FK>>
     Detalle_Pedido_Cantidad : bigint
     Detalle_Pedido_Precio : decimal(18,2)
     Detalle_Pedido_Subtotal : decimal(18,2)
@@ -192,7 +193,7 @@ package " " {
   Cliente ||--o{ Pedido
   Sucursal ||--o{ Pedido
   Pedido   ||--|{ Detalle_Pedido
-  Sillon   ||--o{ Detalle_Pedido
+  Sillon   ||--|| Detalle_Pedido
   Pedido   ||--o| Pedido_Cancelacion
 }
 
