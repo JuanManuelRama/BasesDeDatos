@@ -175,8 +175,7 @@ package " " {
     Pedido_Total : decimal(18,2)
   }
   entity Detalle_Pedido {
-    Detalle_Pedido_Numero <<FK>>
-    Detalle_Sillon_Modelo <<FK>>
+    Detalle_Pedido_Sillon <<FK>>
     --
     Detalle_Pedido_Numero <<FK>>
     Detalle_Pedido_Cantidad : bigint
