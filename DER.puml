@@ -93,14 +93,15 @@ package " " {
     Sillon_Relleno <<FK>>
   }
 
-  Modelo    ||--o{ Sillon
-  Medida    ||--o{ Sillon
-  Material  -- Tela
-  Material  -- Relleno
-  Material  -- Madera
-  Tela      ||--o{ Sillon
-  Relleno   ||--o{ Sillon
-  Madera    ||--o{ Sillon
+
+  Sillon    }o--|| Modelo
+  Sillon    }o--|| Medida
+  Tela  -- Material
+  Relleno  -- Material
+  Madera  -- Material
+  Material  ||--o{ Sillon
+  Material  ||--o{ Sillon
+  Material  ||--o{ Sillon
 }
 
 package " " {
