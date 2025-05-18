@@ -230,7 +230,7 @@ package " " {
   Sucursal ||--o{ Factura
   Pedido   ||--o| Factura
   Factura  ||--|{ Detalle_Factura
-  Sillon   ||--o{ Detalle_Factura
+  Detalle_Pedido ||--o| Detalle_Factura
   Factura  ||--|| Envio
 }
 
