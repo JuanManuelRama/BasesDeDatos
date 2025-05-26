@@ -150,11 +150,11 @@ package " " {
     Compra_Total : decimal(18,2)
   }
   entity Detalle_Compra {
-    Detalle_Compra_Numero <<FK>>
+    Detalle_Compra_Compra <<FK>>
     Detalle_Compra_Material <<FK>>
     --
-    Detalle_Compra_Precio : decimal(18,2)
     Detalle_Compra_Cantidad : decimal(18,0)
+    Detalle_Compra_Precio : decimal(18,2)
     Detalle_Compra_Subtotal : decimal(18,2)
   }
 
@@ -175,15 +175,14 @@ package " " {
     Pedido_Total : decimal(18,2)
   }
   entity Detalle_Pedido {
-    Detalle_Pedido_Numero : bigint
-    --
     Detalle_Pedido_Sillon <<FK>>
+    --
     Detalle_Pedido_Pedido <<FK>>
     Detalle_Pedido_Cantidad : bigint
     Detalle_Pedido_Precio : decimal(18,2)
     Detalle_Pedido_Subtotal : decimal(18,2)
   }
-  entity Pedido_Cancelacion {
+  entity Cancelacion {
     Cancelacion_Pedido <<FK>>
     --
     Cancelacion_Fecha : datetime2(6)
