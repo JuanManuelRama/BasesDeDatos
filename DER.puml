@@ -193,7 +193,7 @@ package " " {
   Sucursal ||--o{ Pedido
   Pedido   ||--|{ Detalle_Pedido
   Sillon   ||--|| Detalle_Pedido
-  Pedido   ||--o| Pedido_Cancelacion
+  Pedido   ||--o| Cancelacion
 }
 
 package " " {
