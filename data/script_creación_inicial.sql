@@ -245,6 +245,24 @@ SELECT DISTINCT
 FROM gd_esquema.Maestra
 WHERE Material_Nombre IS NOT NULL
 
+INSERT INTO DD.Medida
+SELECT DISTINCT
+	Sillon_Medida_Alto,
+	Sillon_Medida_Ancho,
+	Sillon_Medida_Profundidad,
+	Sillon_Medida_Precio 
+FROM gd_esquema.Maestra 
+WHERE Sillon_Medida_Precio IS NOT NULL
+
+INSERT INTO DD.Modelo
+SELECT DISTINCT
+	Sillon_Modelo_Codigo,
+	Sillon_Modelo,
+	Sillon_Modelo_Descripcion,
+	Sillon_Medida_Precio
+FROM gd_esquema.Maestra 
+WHERE Sillon_Modelo_Codigo IS NOT NULL
+
 
 --Nivel 2
 INSERT INTO DD.Localidad 
