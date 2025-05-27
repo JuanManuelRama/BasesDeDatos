@@ -260,8 +260,8 @@ SELECT DISTINCT
 	Sillon_Modelo_Codigo,
 	Sillon_Modelo,
 	Sillon_Modelo_Descripcion,
-	Sillon_Medida_Precio
-FROM gd_esquema.Maestra 
+	Sillon_Modelo_Precio
+FROM gd_esquema.Maestra
 WHERE Sillon_Modelo_Codigo IS NOT NULL
 
 
