@@ -34,7 +34,8 @@ CREATE TABLE DD.Material (
 	Material_Nombre NVARCHAR(255),
 	Material_Descripcion NVARCHAR(255),
 	Material_Precio DECIMAL(38,2),
-	CONSTRAINT PK_Material PRIMARY KEY (Material_ID)
+	CONSTRAINT PK_Material PRIMARY KEY (Material_ID),
+	CONSTRAINT CK_Material_Tipo CHECK (Material_Tipo IN ('MADERA', 'TELA', 'RELLENO'))
 )
 
 CREATE TABLE DD.Madera (
