@@ -118,24 +118,22 @@ CREATE TABLE DD.Proveedor (
 )
 
 CREATE TABLE DD.Sucursal (
-	Sucursal_ID BIGINT IDENTITY(1,1),
 	Sucursal_Numero BIGINT,
 	Sucursal_Domicilio BIGINT,
 	Sucursal_Telefono NVARCHAR(255),
 	Sucursal_Mail NVARCHAR(255),
-	CONSTRAINT PK_Sucursal PRIMARY KEY (Sucursal_ID),
+	CONSTRAINT PK_Sucursal PRIMARY KEY (Sucursal_Numero),
 	CONSTRAINT FK_Sucursal_Domicilio FOREIGN KEY (Sucursal_Domicilio) REFERENCES DD.Domicilio
 )
 
 CREATE TABLE DD.Pedido (
-	Pedido_ID DECIMAL(18,0),
 	Pedido_Numero DECIMAL(18,0),
 	Pedido_Sucursal BIGINT,
 	Pedido_Cliente BIGINT,
 	Pedido_Fecha DATETIME2(6),
 	Pedido_Estado NVARCHAR(255),
 	Pedido_Total DECIMAL(18,2),	
-	CONSTRAINT PK_Pedido PRIMARY KEY (Pedido_ID),
+	CONSTRAINT PK_Pedido PRIMARY KEY (Pedido_Numero),
 	CONSTRAINT FK_Pedido_Sucursal FOREIGN KEY (Pedido_Sucursal) REFERENCES DD.Sucursal,
 	CONSTRAINT FK_Pedido_Cliente FOREIGN KEY (Pedido_Cliente) REFERENCES DD.Cliente,
 	CONSTRAINT CK_Pedido_Estado CHECK (Pedido_Estado IN ('PENDIENTE', 'CANCELADO', 'ENTREGADO'))
@@ -161,7 +159,7 @@ CREATE TABLE DD.Detalle_Pedido (
 )
 
 CREATE TABLE DD.Compra (
-	Compra_Numero BIGINT,
+	Compra_Numero DECIMAL(18,0),
 	Compra_Sucursal BIGINT,
 	Compra_Proveedor BIGINT,
 	Compra_Fecha DATETIME2(6),
@@ -172,7 +170,7 @@ CREATE TABLE DD.Compra (
 )
 
 CREATE TABLE DD.Detalle_Compra (
-	Detalle_Compra_Compra BIGINT,
+	Detalle_Compra_Compra DECIMAL(18,0),
 	Detalle_Compra_Material BIGINT,
 	Detalle_Compra_Cantidad DECIMAL(18,0),
 	Detalle_Compra_Precio DECIMAL(18,2),
