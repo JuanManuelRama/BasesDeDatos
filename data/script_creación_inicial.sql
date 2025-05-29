@@ -266,20 +266,20 @@ WHERE Sillon_Modelo_Codigo IS NOT NULL
 --Nivel 2
 INSERT INTO DD.Localidad 
 SELECT DISTINCT Cliente_Localidad, Provincia_ID
-FROM gd_esquema.Maestra
-JOIN  DD.Provincia ON Provincia_Nombre = Cliente_Provincia
+FROM gd_esquema.Maestra mas
+JOIN  DD.Provincia p ON p.Provincia_Nombre = mas.Cliente_Provincia
 
 UNION
 
 SELECT DISTINCT Proveedor_Localidad, Provincia_ID
-FROM gd_esquema.Maestra
-JOIN  DD.Provincia ON Provincia_Nombre = Proveedor_Provincia
+FROM gd_esquema.Maestra mas
+JOIN  DD.Provincia p ON p.Provincia_Nombre = mas.Proveedor_Provincia
 
 UNION
 
 SELECT DISTINCT Sucursal_Localidad, Provincia_ID
-FROM gd_esquema.Maestra
-JOIN  DD.Provincia ON Provincia_Nombre = Sucursal_Provincia
+FROM gd_esquema.Maestra mas
+JOIN  DD.Provincia p ON p.Provincia_Nombre = mas.Sucursal_Provincia
 
 INSERT INTO DD.Tela
 SELECT DISTINCT Material_ID, Tela_Color, Tela_Textura
@@ -300,6 +300,30 @@ JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre
 WHERE mat.Material_Tipo = 'RELLENO'
 
 --Nivel 3
+
+INSERT INTO DD.Domicilio
+SELECT DISTINCT Sucursal_Direccion, Localidad_ID  
+FROM gd_esquema.Maestra mas
+JOIN DD.Localidad l ON l.Localidad_Nombre = mas.Sucursal_Localidad
+JOIN DD.Provincia p ON p.Provincia_ID = l.Localidad_Provincia 
+WHERE Provincia_Nombre = Sucursal_Provincia 
+
+UNION
+
+SELECT DISTINCT Cliente_Direccion, Localidad_ID
+FROM gd_esquema.Maestra mas
+JOIN DD.Localidad l ON l.Localidad_Nombre = mas.Cliente_Localidad
+JOIN DD.Provincia p ON p.Provincia_ID = l.Localidad_Provincia 
+WHERE Provincia_Nombre = Cliente_Provincia 
+
+UNION
+
+SELECT DISTINCT Proveedor_Direccion, Localidad_ID
+FROM gd_esquema.Maestra mas
+JOIN DD.Localidad l ON l.Localidad_Nombre = mas.Proveedor_Localidad
+JOIN DD.Provincia p ON p.Provincia_ID = l.Localidad_Provincia 
+WHERE Provincia_Nombre = Proveedor_Provincia 
+
 -- No se pueden insertar los 3 materiales a la vez
 INSERT INTO DD.Sillon (Sillon_Codigo, Sillon_Medida, Sillon_Modelo, Sillon_Tela)
 SELECT DISTINCT 
@@ -322,3 +346,76 @@ SET Sillon_Relleno = r.Material_ID
 FROM DD.Sillon
 JOIN gd_esquema.Maestra mas ON DD.Sillon.Sillon_Codigo = mas.Sillon_Codigo
 JOIN DD.Material r ON r.Material_Nombre = mas.Material_Nombre AND r.Material_Tipo = 'RELLENO';
+
+-- Nivel 4
+
+INSERT INTO DD.Cliente
+SELECT DISTINCT 
+	Cliente_Dni, 
+	Domicilio_ID,
+	Cliente_Nombre,
+	Cliente_Apellido,
+	Cliente_Telefono,
+	Cliente_FechaNacimiento,
+	Cliente_Mail
+FROM gd_esquema.Maestra mas
+JOIN DD.Domicilio d ON d.Domicilio_Direccion  = mas.Cliente_Direccion 
+JOIN DD.Localidad l ON l.Localidad_ID = d.Domicilio_Localidad 
+JOIN DD.Provincia p ON p.Provincia_ID  = l.Localidad_Provincia 
+WHERE Cliente_Localidad = Localidad_Nombre 
+AND Cliente_Provincia = Provincia_Nombre 
+
+INSERT INTO DD.Sucursal
+SELECT DISTINCT
+	Sucursal_NroSucursal,
+	Domicilio_ID,
+	Sucursal_telefono,
+	Sucursal_mail
+FROM gd_esquema.Maestra mas
+JOIN DD.Domicilio d ON d.Domicilio_Direccion = mas.Sucursal_Direccion
+JOIN DD.Localidad l ON l.Localidad_ID = d.Domicilio_Localidad 
+JOIN DD.Provincia p ON p.Provincia_ID  = l.Localidad_Provincia 
+WHERE Sucursal_Localidad  = Localidad_Nombre 
+AND Sucursal_Provincia  = Provincia_Nombre 
+
+INSERT INTO DD.Proveedor
+SELECT DISTINCT
+	Proveedor_Cuit,
+	Proveedor_RazonSocial,
+	Domicilio_ID,
+	Proveedor_Telefono,
+	Proveedor_Mail 
+FROM gd_esquema.Maestra mas
+JOIN DD.Domicilio d ON d.Domicilio_Direccion  = mas.Proveedor_Direccion  
+JOIN DD.Localidad l ON l. Localidad_ID = d.Domicilio_Localidad 
+JOIN DD.Provincia p ON p.Provincia_ID  = l.Localidad_Provincia 
+WHERE Proveedor_Localidad  = Localidad_Nombre 
+AND Proveedor_Provincia  = Provincia_Nombre 
+
+-- Nivel 5
+
+INSERT INTO DD.Pedido
+SELECT DISTINCT
+	Pedido_Numero,
+	Sucursal_Numero,
+	Cliente_ID,
+	Pedido_Fecha,
+	Pedido_Estado,
+	Pedido_Total 
+FROM gd_esquema.Maestra mas
+JOIN DD.Sucursal s ON s.Sucursal_Numero = mas.Sucursal_NroSucursal
+JOIN DD.Cliente c ON c.Cliente_DNI = mas.Cliente_Dni
+where Pedido_Numero IS NOT NULL
+
+INSERT INTO DD.Compra
+SELECT DISTINCT
+	Compra_Numero,
+	s.Sucursal_Numero,
+	p.Proveedor_ID,
+	Compra_Fecha,
+	Compra_Total 
+FROM gd_esquema.Maestra mas
+JOIN DD.Sucursal s ON s.Sucursal_Numero = mas.Sucursal_NroSucursal
+JOIN DD.Proveedor p ON p.Proveedor_CUIT = mas.Proveedor_Cuit
+WHERE Compra_Numero IS NOT NULL
+
