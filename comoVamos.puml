@@ -1,0 +1,233 @@
+@startuml DER
+left to right direction
+hide methods
+skinparam shadowing false
+skinparam packageBorderThickness 0
+skinparam package {
+  fontColor blue
+  stereotypeFontColor red
+}
+
+package " " {
+  entity Provincia #back:Green{
+    Provincia_ID <<auto>> : bigint
+    --
+    Provincia_Nombre : nvarchar(255)
+  }
+
+  entity Localidad #back:Green{
+    Localidad_ID <<auto>> : bigint
+    --
+    Localidad_Nombre : nvarchar(255)
+    Localidad_Provincia <<FK>>
+  }
+
+  entity Domicilio #back:Green{
+    Domicilio_ID <<auto>> : bigint
+    --
+    Domicilio_Direccion : nvarchar(255)
+    Domicilio_Localidad <<FK>>
+  }
+
+  Provincia ||-[#Green]-o{ Localidad
+  Localidad ||-[#Green]-o{ Domicilio
+}
+
+package " " {
+  entity Modelo #back:Green{
+    Modelo_Codigo : bigint
+    --
+    Modelo_Nombre : nvarchar(255)
+    Modelo_Descripcion : nvarchar(255)
+    Modelo_Precio : decimal(18,2)
+  }
+
+  entity Medida #back:Green{
+    Medida_ID <<auto>> : int
+    --
+    Medida_Alto : decimal(18,2)
+    Medida_Ancho : decimal(18,2)
+    Medida_Profundidad : decimal(18,2)
+    Medida_Precio : decimal(18,2)
+  }
+
+  entity Material #back:Green{
+    Material_ID <<auto>> : bigint
+    --
+    Material_Tipo : nvarchar(255)
+    Material_Nombre : nvarchar(255)
+    Material_Descripcion : nvarchar(255)
+    Material_Precio : decimal(38,2)
+  }
+
+  entity Tela #back:Green{
+    Tela_ID <<FK>>
+    --
+    Tela_Color : nvarchar(255)
+    Tela_Textura : nvarchar(255)
+  }
+
+  entity Relleno #back:Green{
+    Relleno_ID <<FK>>
+    --
+    Relleno_Densidad : decimal(38,2)
+  }
+
+  entity Madera #back:Green{
+    Madera_ID <<FK>>
+    --
+    Madera_Color : nvarchar(255)
+    Madera_Dureza : nvarchar(255)
+  }
+
+  entity Sillon #back:Green{
+    Sillon_Codigo : bigint
+    --
+    Sillon_Modelo <<FK>>
+    Sillon_Medida <<FK>>
+    Sillon_Madera <<FK>>
+    Sillon_Tela <<FK>>
+    Sillon_Relleno <<FK>>
+  }
+
+
+  Sillon    }o-[#Green]-|| Modelo
+  Sillon    }o-[#Green]-|| Medida
+  Tela      -[#Green]- Material
+  Relleno   -[#Green]- Material
+  Madera    -[#Green]- Material
+  Material  ||-[#Green]-o{ Sillon
+  Material  ||-[#Green]-o{ Sillon
+  Material  ||-[#Green]-o{ Sillon
+}
+
+package " " {
+  entity Cliente #back:Green{
+    Cliente_ID <<auto>> : bigint
+    --
+    Cliente_DNI : bigint
+    Cliente_Domicilio <<FK>>
+    Cliente_Nombre : nvarchar(255)
+    Cliente_Apellido : nvarchar(255)
+    Cliente_Telefono : nvarchar(255)
+    Cliente_FechaNacimiento : datetime2(6)
+    Cliente_Mail : nvarchar(255)
+  }
+
+  entity Proveedor #back:Green{
+    Proveedor_ID <<auto>> : bigint
+    --
+    Proveedor_CUIT : nvarchar(255)
+    Proveedor_Razon_Social : nvarchar(255)
+    Proveedor_Domicilio <<FK>>
+    Proveedor_Telefono : nvarchar(255)
+    Proveedor_Mail : nvarchar(255)
+  }
+
+  entity Sucursal #back:Green{
+    Sucursal_Numero : bigint
+    --
+    Sucursal_Domicilio <<FK>>
+    Sucursal_Telefono : nvarchar(255)
+    Sucursal_Mail : nvarchar(255)
+  }
+
+  Domicilio ||-[#Green]-o{ Cliente
+  Domicilio ||-[#Green]-o{ Proveedor
+  Domicilio ||-[#Green]-o{ Sucursal
+}
+
+package " " {
+  entity Compra #back:Green{
+    Compra_Numero : decimal(18,0)
+    --
+    Compra_Sucursal <<FK>>
+    Compra_Proveedor <<FK>>
+    Compra_Fecha : datetime2(6)
+    Compra_Total : decimal(18,2)
+  }
+  entity Detalle_Compra {
+    Detalle_Compra_Compra <<FK>>
+    Detalle_Compra_Material <<FK>>
+    --
+    Detalle_Compra_Cantidad : decimal(18,0)
+    Detalle_Compra_Precio : decimal(18,2)
+    Detalle_Compra_Subtotal : decimal(18,2)
+  }
+
+  Proveedor ||-[#Green]-o{ Compra
+  Sucursal  ||-[#Green]-o{ Compra
+  Compra    ||-[#Green]-|{ Detalle_Compra
+  Material  ||-[#Green]-o{ Detalle_Compra
+}
+
+package " " {
+  entity Pedido #back:Green{
+    Pedido_Numero : decimal(18,0)
+    --
+    Pedido_Sucursal <<FK>>
+    Pedido_Cliente <<FK>>
+    Pedido_Fecha : datetime2(6)
+    Pedido_Estado : nvarchar(255)
+    Pedido_Total : decimal(18,2)
+  }
+  entity Detalle_Pedido {
+    Detalle_Pedido_Sillon <<FK>>
+    --
+    Detalle_Pedido_Pedido <<FK>>
+    Detalle_Pedido_Cantidad : bigint
+    Detalle_Pedido_Precio : decimal(18,2)
+    Detalle_Pedido_Subtotal : decimal(18,2)
+  }
+  entity Cancelacion {
+    Cancelacion_Pedido <<FK>>
+    --
+    Cancelacion_Fecha : datetime2(6)
+    Cancelacion_Motivo : varchar(255)
+  }
+
+  Cliente  ||-[#Green]-o{ Pedido
+  Sucursal ||-[#Green]-o{ Pedido
+  Pedido   ||-[#Green]-|{ Detalle_Pedido
+  Sillon   ||-[#Green]-|| Detalle_Pedido
+  Pedido   ||-[#Green]-o| Cancelacion
+}
+
+package " " {
+  entity Factura {
+    Factura_Numero : bigint
+    --
+    Factura_Cliente <<FK>>
+    Factura_Sucursal <<FK>>
+    Factura_Pedido <<FK>>
+    Factura_Fecha : datetime2(6)
+    Factura_Total : decimal(38,2)
+  }
+  entity Detalle_Factura {
+    Detalle_Factura_Detalle_Pedido <<FK>>
+    --
+    Detalle_Factura_Factura <<FK>>
+    Detalle_Factura_Cantidad : decimal(18,0)
+    Detalle_Factura_Precio : decimal(18,2)
+    Detalle_Factura_SubTotal : decimal(18,2)
+  }
+  entity Envio {
+    Envio_Numero : decimal(18,0)
+    --
+    Envio_Factura <<FK>>
+    Envio_Fecha_Programada : datetime2(6)
+    Envio_Fecha_Entrega : datetime2(6)
+    Envio_Importe_Translado : decimal(18,2)
+    Envio_Importe_Subida : decimal(18,2)
+    Envio_Total : decimal(18,2)
+  }
+
+  Cliente  ||-[#Green]-o{ Factura
+  Sucursal ||-[#Green]-o{ Factura
+  Pedido   ||-[#Green]-o| Factura
+  Factura  ||-[#Red]-|{ Detalle_Factura
+  Detalle_Pedido ||-[#Red]-o| Detalle_Factura
+  Factura  ||-[#Red]-|| Envio
+}
+
+@enduml
