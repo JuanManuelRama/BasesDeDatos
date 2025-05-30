@@ -1,5 +1,4 @@
 @startuml DER
-' Orientación y estilo
 left to right direction
 hide methods
 skinparam shadowing false
@@ -8,9 +7,7 @@ skinparam package {
   fontColor blue
   stereotypeFontColor red
 }
-'=============================
-' Paquetes de Dimensiones
-'=============================
+
 package " " {
   entity Provincia {
     Provincia_ID <<auto>> : bigint
