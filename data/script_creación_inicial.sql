@@ -514,6 +514,8 @@ JOIN DD.Sucursal s ON s.Sucursal_Numero = mas.Sucursal_NroSucursal
 JOIN DD.Proveedor p ON p.Proveedor_CUIT = mas.Proveedor_Cuit
 WHERE Compra_Numero IS NOT NULL
 
+-- Nivel 6
+
 INSERT INTO DD.Cancelacion (
 	Cancelacion_Pedido,
 	Cancelacion_Fecha,
@@ -545,5 +547,24 @@ FROM gd_esquema.Maestra mas
 JOIN DD.Cliente c on c.Cliente_DNI = mas.Cliente_Dni
 WHERE Factura_Numero IS NOT NULL AND Pedido_Numero IS NOT NULL
 
--- en una fila con pedido_numero, numero_factura y cliente_dni, como sabes si el dni es del que pidio o el que hizo la factura?
 
+-- Nivel 7
+INSERT INTO DD.Envio (
+	Envio_Numero,
+	Envio_Factura,
+	Envio_Fecha_Programada,
+	Envio_Fecha_Entrega,
+	Envio_Importe_Translado,
+	Envio_Importe_Subida,
+	Envio_Importe_Total
+)
+SELECT DISTINCT
+	Envio_Numero,
+	Factura_Numero
+	Envio_Fecha_Programada,
+	Envio_Fecha,
+	Envio_ImporteTraslado,
+	Envio_importeSubida,
+	Envio_Total
+FROM gd_esquema.Maestra
+WHERE Envio_Numero IS NOT NULL
