@@ -524,3 +524,4 @@ SELECT DISTINCT
 	Pedido_Cancelacion_Fecha,
 	Pedido_Cancelacion_Motivo
 FROM gd_esquema.Maestra mas
+WHERE Pedido_Estado = 'CANCELADO'
