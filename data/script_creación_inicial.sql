@@ -4,7 +4,7 @@ GO
 CREATE SCHEMA DD
 GO
 
---Creaci�n de tablas
+--Creación de tablas
 CREATE TABLE DD.Provincia (
 	Provincia_ID BIGINT IDENTITY(1,1),
 	Provincia_Nombre NVARCHAR(255),
