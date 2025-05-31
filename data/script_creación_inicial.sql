@@ -526,7 +526,7 @@ SELECT DISTINCT
 	Pedido_Cancelacion_Fecha,
 	Pedido_Cancelacion_Motivo
 FROM gd_esquema.Maestra mas
-WHERE Pedido_Estado = 'CANCELADO'
+WHERE Pedido_Cancelacion_Motivo IS NOT NULL
 
 INSERT INTO DD.Factura (
 	Factura_Numero,
