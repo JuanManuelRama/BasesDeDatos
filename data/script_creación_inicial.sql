@@ -494,7 +494,7 @@ SELECT DISTINCT
 FROM gd_esquema.Maestra mas
 JOIN DD.Sucursal s ON s.Sucursal_Numero = mas.Sucursal_NroSucursal
 JOIN DD.Cliente c ON c.Cliente_DNI = mas.Cliente_Dni
-where Pedido_Numero IS NOT NULL
+WHERE Pedido_Numero IS NOT NULL
 
 INSERT INTO DD.Compra (
 	Compra_Numero,
