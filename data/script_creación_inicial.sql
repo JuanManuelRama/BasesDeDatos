@@ -525,3 +525,25 @@ SELECT DISTINCT
 	Pedido_Cancelacion_Motivo
 FROM gd_esquema.Maestra mas
 WHERE Pedido_Estado = 'CANCELADO'
+
+INSERT INTO DD.Factura (
+	Factura_Numero,
+	Factura_Cliente,
+	Factura_Sucursal,
+	Factura_Pedido,
+	Factura_Fecha,
+	Factura_Total
+)
+SELECT DISTINCT
+	Factura_Numero,
+	Cliente_ID,
+	Sucursal_NroSucursal,   -- FK
+	Pedido_Numero,			-- FK
+	Factura_Fecha,
+	Factura_Total
+FROM gd_esquema.Maestra mas
+JOIN DD.Cliente c on c.Cliente_DNI = mas.Cliente_Dni
+WHERE Factura_Numero IS NOT NULL AND Pedido_Numero IS NOT NULL
+
+-- en una fila con pedido_numero, numero_factura y cliente_dni, como sabes si el dni es del que pidio o el que hizo la factura?
+
