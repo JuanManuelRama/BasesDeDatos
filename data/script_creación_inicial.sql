@@ -614,9 +614,11 @@ INSERT INTO DD.Detalle_Factura(
 	Detalle_Factura_Subtotal
 )
 SELECT DISTINCT
-	Sillon_Codigo,
+	Detalle_Pedido_Sillon,
 	Factura_Numero,
-	Detalle_Factura_Cantidad,
-	Detalle_Factura_Precio,
-	Detalle_Factura_SubTotal
+	det.Detalle_Pedido_Cantidad,
+	det.Detalle_Pedido_Precio,
+	det.Detalle_Pedido_SubTotal
 FROM gd_esquema.Maestra mas
+JOIN DD.Detalle_Pedido det ON Detalle_Pedido_Pedido = Pedido_Numero
+WHERE Factura_Numero IS NOT NULL
