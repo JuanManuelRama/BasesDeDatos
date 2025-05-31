@@ -321,7 +321,7 @@ SELECT DISTINCT
 	Tela_Color, 
 	Tela_Textura
 FROM gd_esquema.Maestra mas
-JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre
+JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre AND mat.Material_Descripcion = mas.Material_Descripcion
 WHERE mat.Material_Tipo = 'TELA'
 
 INSERT INTO DD.Madera (
@@ -334,7 +334,7 @@ SELECT DISTINCT
 	Madera_Color, 
 	Madera_Dureza
 FROM gd_esquema.Maestra mas
-JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre
+JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre AND mat.Material_Descripcion = mas.Material_Descripcion
 WHERE mat.Material_Tipo = 'MADERA'
 
 INSERT INTO DD.Relleno (
@@ -345,7 +345,7 @@ SELECT DISTINCT
 	Material_ID, 
 	Relleno_Densidad
 FROM gd_esquema.Maestra mas
-JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre
+JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre AND mat.Material_Descripcion = mas.Material_Descripcion
 WHERE mat.Material_Tipo = 'RELLENO'
 
 --Nivel 3
@@ -396,19 +396,19 @@ SELECT DISTINCT
     Material_ID
 FROM gd_esquema.Maestra mas
 JOIN DD.Medida ON Sillon_Medida_Alto = Medida_Alto AND Sillon_Medida_Ancho = Medida_Ancho AND Sillon_Medida_Profundidad = Medida_Profundidad
-JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre AND mat.Material_Tipo = 'TELA';
+JOIN DD.Material mat ON mat.Material_Tipo = 'TELA' AND mat.Material_Nombre = mas.Material_Nombre  AND mat.Material_Descripcion =mas.Material_Descripcion
 
 UPDATE DD.Sillon
-SET Sillon_Madera = m.Material_ID
+SET Sillon_Madera = mat.Material_ID
 FROM DD.Sillon
 JOIN gd_esquema.Maestra mas ON DD.Sillon.Sillon_Codigo  = mas.Sillon_Codigo
-JOIN DD.Material m ON m.Material_Nombre = mas.Material_Nombre AND m.Material_Tipo = 'MADERA';
+JOIN DD.Material mat ON mat.Material_Tipo = 'MADERA' AND mat.Material_Nombre = mas.Material_Nombre  AND mat.Material_Descripcion =mas.Material_Descripcion
 
 UPDATE DD.Sillon
-SET Sillon_Relleno = r.Material_ID
+SET Sillon_Relleno = mat.Material_ID
 FROM DD.Sillon
 JOIN gd_esquema.Maestra mas ON DD.Sillon.Sillon_Codigo = mas.Sillon_Codigo
-JOIN DD.Material r ON r.Material_Nombre = mas.Material_Nombre AND r.Material_Tipo = 'RELLENO';
+JOIN DD.Material mat ON mat.Material_Tipo = 'TELA' AND mat.Material_Nombre = mas.Material_Nombre  AND mat.Material_Descripcion =mas.Material_Descripcion
 
 -- Nivel 4
 
