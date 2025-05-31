@@ -217,6 +217,7 @@ CREATE TABLE DD.Detalle_Factura (
 
 GO
 --Insert Nivel 1 (Tablas sin dependencias)
+-- Tabla provincia
 INSERT INTO DD.Provincia (
 	Provincia_Nombre	
 )
@@ -253,6 +254,7 @@ SELECT DISTINCT
 FROM gd_esquema.Maestra
 WHERE Material_Nombre IS NOT NULL
 
+-- Tabla medida
 INSERT INTO DD.Medida (
 	Medida_Alto,
 	Medida_Ancho,
@@ -511,3 +513,14 @@ FROM gd_esquema.Maestra mas
 JOIN DD.Sucursal s ON s.Sucursal_Numero = mas.Sucursal_NroSucursal
 JOIN DD.Proveedor p ON p.Proveedor_CUIT = mas.Proveedor_Cuit
 WHERE Compra_Numero IS NOT NULL
+
+INSERT INTO DD.Cancelacion (
+	Cancelacion_Pedido,
+	Cancelacion_Fecha,
+	Cancelacion_Motivo
+)
+SELECT DISTINCT
+	Pedido_Numero,
+	Pedido_Cancelacion_Fecha,
+	Pedido_Cancelacion_Motivo
+FROM gd_esquema.Maestra mas
