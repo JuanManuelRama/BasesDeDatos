@@ -547,6 +547,25 @@ FROM gd_esquema.Maestra mas
 JOIN DD.Cliente c on c.Cliente_DNI = mas.Cliente_Dni
 WHERE Factura_Numero IS NOT NULL AND Pedido_Numero IS NOT NULL
 
+-- en una fila con pedido_numero, numero_factura y cliente_dni, como sabes si el dni es del que pidio o el que hizo la factura?
+
+INSERT INTO DD.Detalle_Compra (
+	Detalle_Compra_Compra,
+	Detalle_Compra_Material,
+	Detalle_Compra_Cantidad,
+	Detalle_Compra_Precio,
+	Detalle_Compra_Subtotal
+)
+SELECT DISTINCT
+	Compra_Numero,
+	Material_ID,
+	Detalle_Compra_Cantidad,
+	Detalle_Compra_Precio,
+	Detalle_Compra_SubTotal
+FROM gd_esquema.Maestra mas
+JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre
+WHERE Compra_Numero IS NOT NULL
+
 
 -- Nivel 7
 INSERT INTO DD.Envio (
