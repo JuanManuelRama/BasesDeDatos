@@ -566,6 +566,25 @@ FROM gd_esquema.Maestra mas
 JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre
 WHERE Compra_Numero IS NOT NULL
 
+INSERT INTO DD.Detalle_Pedido (
+	Detalle_Pedido_Sillon,
+	Detalle_Pedido_Pedido,
+	Detalle_Pedido_Cantidad,
+	Detalle_Pedido_Precio,
+	Detalle_Pedido_Subtotal
+)
+SELECT DISTINCT
+	Sillon_Codigo,
+	Pedido_Numero,
+	Detalle_Pedido_Cantidad,
+	Detalle_Pedido_Precio,
+	Detalle_Pedido_SubTotal
+FROM gd_esquema.Maestra mas
+WHERE Detalle_Pedido_Cantidad IS NOT NULL AND Sillon_Codigo IS NOT NULL
+-- hay filas con detalle_pedido_cantidad != null && sillon_codigo = null (pareciera ser que es por que corresponden a detalles
+-- de factura y tienen tambien el detalle pedido asociado) => filtramos solo los detalle pedido que tienen un sillon_codigo
+
+select * from gd_esquema.Maestra where Pedido_numero = 29813014
 
 -- Nivel 7
 INSERT INTO DD.Envio (
@@ -579,7 +598,7 @@ INSERT INTO DD.Envio (
 )
 SELECT DISTINCT
 	Envio_Numero,
-	Factura_Numero
+	Factura_Numero,
 	Envio_Fecha_Programada,
 	Envio_Fecha,
 	Envio_ImporteTraslado,
@@ -587,3 +606,19 @@ SELECT DISTINCT
 	Envio_Total
 FROM gd_esquema.Maestra
 WHERE Envio_Numero IS NOT NULL
+
+
+INSERT INTO DD.Detalle_Factura(
+	Detalle_Factura_Detalle_Pedido,
+	Detalle_Factura_Factura,
+	Detalle_Factura_Cantidad,
+	Detalle_Factura_Precio,
+	Detalle_Factura_Subtotal
+)
+SELECT DISTINCT
+	Sillon_Codigo,
+	Factura_Numero,
+	Detalle_Factura_Cantidad,
+	Detalle_Factura_Precio,
+	Detalle_Factura_SubTotal
+FROM gd_esquema.Maestra mas
