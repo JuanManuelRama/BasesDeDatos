@@ -584,8 +584,6 @@ WHERE Detalle_Pedido_Cantidad IS NOT NULL AND Sillon_Codigo IS NOT NULL
 -- hay filas con detalle_pedido_cantidad != null && sillon_codigo = null (pareciera ser que es por que corresponden a detalles
 -- de factura y tienen tambien el detalle pedido asociado) => filtramos solo los detalle pedido que tienen un sillon_codigo
 
-select * from gd_esquema.Maestra where Pedido_numero = 29813014
-
 -- Nivel 7
 INSERT INTO DD.Envio (
 	Envio_Numero,
