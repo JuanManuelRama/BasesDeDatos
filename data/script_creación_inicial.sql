@@ -1,6 +1,31 @@
 --Setup
 USE GD1C2025
 GO
+-- Limpieza de tablas y esquemas
+DROP TABLE IF EXISTS DD.Detalle_Factura
+DROP TABLE IF EXISTS DD.Envio
+DROP TABLE IF EXISTS DD.Factura
+DROP TABLE IF EXISTS DD.Detalle_Compra
+DROP TABLE IF EXISTS DD.Cancelacion
+DROP TABLE IF EXISTS DD.Detalle_Pedido
+DROP TABLE IF EXISTS DD.Pedido
+DROP TABLE IF EXISTS DD.Compra
+DROP TABLE IF EXISTS DD.Sillon
+DROP TABLE IF EXISTS DD.Modelo
+DROP TABLE IF EXISTS DD.Madera
+DROP TABLE IF EXISTS DD.Relleno
+DROP TABLE IF EXISTS DD.Tela
+DROP TABLE IF EXISTS DD.Material
+DROP TABLE IF EXISTS DD.Medida
+DROP TABLE IF EXISTS DD.Sucursal
+DROP TABLE IF EXISTS DD.Proveedor
+DROP TABLE IF EXISTS DD.Cliente
+DROP TABLE IF EXISTS DD.Domicilio
+DROP TABLE IF EXISTS DD.Localidad
+DROP TABLE IF EXISTS DD.Provincia
+DROP SCHEMA IF EXISTS DD
+GO
+-- Creación del esquema
 CREATE SCHEMA DD
 GO
 
@@ -8,7 +33,8 @@ GO
 CREATE TABLE DD.Provincia (
 	Provincia_ID BIGINT IDENTITY(1,1),
 	Provincia_Nombre NVARCHAR(255),
-	CONSTRAINT PK_Provincia PRIMARY KEY (Provincia_ID)
+	CONSTRAINT PK_Provincia PRIMARY KEY (Provincia_ID),
+	CONSTRAINT UQ_Provincia_Nombre UNIQUE(Provincia_Nombre)
 )
 
 CREATE TABLE DD.Localidad (
@@ -16,15 +42,17 @@ CREATE TABLE DD.Localidad (
 	Localidad_Nombre NVARCHAR(255),
 	Localidad_Provincia BIGINT,
 	CONSTRAINT PK_Localidad PRIMARY KEY (Localidad_ID),
-	CONSTRAINT FK_Localidad_Provincia FOREIGN KEY (Localidad_Provincia) REFERENCES DD.Provincia
+	CONSTRAINT FK_Localidad_Provincia FOREIGN KEY (Localidad_Provincia) REFERENCES DD.Provincia,
+	CONSTRAINT UQ_Localidad_Nombre_Provincia UNIQUE(Localidad_Nombre, Localidad_Provincia)
 )
 
 CREATE TABLE DD.Domicilio (
 	Domicilio_ID BIGINT IDENTITY(1,1),
 	Domicilio_Direccion NVARCHAR(255),
-	Domicilio_Localidad BIGINT FOREIGN KEY REFERENCES DD.Localidad,
+	Domicilio_Localidad BIGINT,
 	CONSTRAINT PK_Domicilio PRIMARY KEY (Domicilio_ID),
-	CONSTRAINT FK_Domicilio_Provincia FOREIGN KEY (Domicilio_Localidad) REFERENCES DD.Localidad
+	CONSTRAINT FK_Domicilio_Provincia FOREIGN KEY (Domicilio_Localidad) REFERENCES DD.Localidad,
+	CONSTRAINT UQ_Domicilio_Direccion_Localidad UNIQUE(Domicilio_Direccion, Domicilio_Localidad)
 )
 
 CREATE TABLE DD.Material (
@@ -34,7 +62,8 @@ CREATE TABLE DD.Material (
 	Material_Descripcion NVARCHAR(255),
 	Material_Precio DECIMAL(38,2),
 	CONSTRAINT PK_Material PRIMARY KEY (Material_ID),
-	CONSTRAINT CK_Material_Tipo CHECK (Material_Tipo IN ('MADERA', 'TELA', 'RELLENO'))
+	CONSTRAINT CK_Material_Tipo CHECK (Material_Tipo IN ('MADERA', 'TELA', 'RELLENO')),
+	CONSTRAINT UQ_Material_Tipo_Nombre_Descripcion  UNIQUE(Material_Tipo, Material_Nombre, Material_Descripcion)
 )
 
 CREATE TABLE DD.Madera (
@@ -66,7 +95,8 @@ CREATE TABLE DD.Medida (
 	Medida_Ancho DECIMAL(18,2),
 	Medida_Profundidad DECIMAL(18,2),
 	Medida_Precio DECIMAL(18,2),
-	CONSTRAINT PK_Medida PRIMARY KEY (Medida_ID)
+	CONSTRAINT PK_Medida PRIMARY KEY (Medida_ID),
+	CONSTRAINT UQ_Medida_Alto_Ancho_Profundidad UNIQUE(Medida_Alto, Medida_Ancho, Medida_Profundidad)
 )
 
 CREATE TABLE DD.Modelo (
@@ -102,7 +132,8 @@ CREATE TABLE DD.Cliente (
 	Cliente_Fecha_Nacimiento DATETIME2(6),
 	Cliente_Mail NVARCHAR(255),
 	CONSTRAINT PK_Cliente PRIMARY KEY (Cliente_ID),
-	CONSTRAINT FK_Cliente_Domicilio FOREIGN KEY (Cliente_Domicilio) REFERENCES DD.Domicilio
+	CONSTRAINT FK_Cliente_Domicilio FOREIGN KEY (Cliente_Domicilio) REFERENCES DD.Domicilio,
+	CONSTRAINT UQ_Cliente_DNI_Apellido_Nombre UNIQUE(Cliente_DNI, Cliente_Apellido, Cliente_Nombre)
 )
 
 CREATE TABLE DD.Proveedor (
@@ -113,7 +144,8 @@ CREATE TABLE DD.Proveedor (
 	Proveedor_Telefono NVARCHAR(255),
 	Proveedor_Mail NVARCHAR(255),
 	CONSTRAINT PK_Proveedor PRIMARY KEY (Proveedor_ID),
-	CONSTRAINT FK_Proveedor_Domicilio FOREIGN KEY (Proveedor_Domicilio) REFERENCES DD.Domicilio
+	CONSTRAINT FK_Proveedor_Domicilio FOREIGN KEY (Proveedor_Domicilio) REFERENCES DD.Domicilio,
+	CONSTRAINT UQ_Proveedor_CUIT UNIQUE(Proveedor_CUIT)
 )
 
 CREATE TABLE DD.Sucursal (
@@ -216,6 +248,79 @@ CREATE TABLE DD.Detalle_Factura (
 )
 
 GO
+--Triggers
+CREATE TRIGGER CK_Madera ON DD.Madera AFTER INSERT
+AS
+IF EXISTS (
+    SELECT 1
+    FROM inserted i
+    JOIN DD.Material m ON m.Material_ID = i.Madera_ID
+    WHERE m.Material_Tipo <> 'MADERA'
+)
+	THROW 50000, 'Solo se pueden insertar materiales de tipo MADERA en esta tabla.', 1
+GO
+
+CREATE TRIGGER CK_Tela ON DD.Tela AFTER INSERT
+AS
+IF EXISTS (
+    SELECT 1
+	FROM inserted i
+    JOIN DD.Material m ON m.Material_ID = i.Tela_ID
+    WHERE m.Material_Tipo <> 'TELA'
+)
+	THROW 50001, 'Solo se pueden insertar materiales de tipo TELA en esta tabla.', 1
+GO
+
+CREATE TRIGGER CK_Relleno ON DD.Relleno AFTER INSERT
+AS
+IF EXISTS (
+   	SELECT 1
+    FROM inserted i
+    JOIN DD.Material m ON m.Material_ID = i.Relleno_ID
+    WHERE m.Material_Tipo <> 'RELLENO'
+)
+    THROW 50002, 'Solo se pueden insertar materiales de tipo RELLENO en esta tabla.', 1
+
+GO
+
+CREATE TRIGGER CK_Cancelacion ON DD.Cancelacion AFTER INSERT
+AS
+IF EXISTS (
+	SELECT 1
+	FROM inserted i
+	JOIN DD.Pedido p ON p.Pedido_Numero = i.Cancelacion_Pedido
+	WHERE p.Pedido_Estado <> 'CANCELADO'
+)
+	THROW 50003, 'No se puede cancelar un pedido que no está en estado CANCELADO.', 1
+GO
+
+CREATE TRIGGER CK_Sillon ON DD.Sillon AFTER INSERT
+AS
+BEGIN
+	IF EXISTS (
+		SELECT 1
+		FROM inserted 
+		LEFT JOIN DD.Madera ON Madera_ID = Sillon_Tela
+		WHERE Sillon_Madera IS NOT NULL AND Madera_ID IS NULL
+	)
+		THROW 50004, 'El tipo de Sillon_Madera debe ser MADERA.', 1;
+	IF EXISTS (
+		SELECT 1
+		FROM inserted 
+		LEFT JOIN DD.Tela ON Tela_ID = Sillon_Tela
+		WHERE Sillon_Tela IS NOT NULL AND Tela_ID IS NULL
+	)
+		THROW 50005, 'El tipo de Sillon_Tela debe ser TELA.', 1;
+	IF EXISTS (
+		SELECT 1
+		FROM inserted 
+		LEFT JOIN DD.Relleno ON Relleno_ID = Sillon_Tela
+		WHERE Sillon_Relleno IS NOT NULL AND Relleno_ID IS NULL
+	)
+		THROW 50006, 'El tipo de Sillon_Relleno debe ser RELLENO.', 1;
+END
+GO
+
 --Insert Nivel 1 (Tablas sin dependencias)
 -- Tabla provincia
 INSERT INTO DD.Provincia (
@@ -240,6 +345,7 @@ SELECT DISTINCT
 FROM gd_esquema.Maestra
 WHERE Proveedor_Provincia IS NOT NULL
 
+
 INSERT INTO DD.Material (
 	Material_Tipo,
 	Material_Nombre,
@@ -252,9 +358,10 @@ SELECT DISTINCT
 	Material_Descripcion,
 	Material_Precio
 FROM gd_esquema.Maestra
-WHERE Material_Nombre IS NOT NULL
+WHERE Material_Nombre IS NOT NULL 
+	AND Material_Descripcion IS NOT NULL
 
--- Tabla medida
+
 INSERT INTO DD.Medida (
 	Medida_Alto,
 	Medida_Ancho,
@@ -267,7 +374,10 @@ SELECT DISTINCT
 	Sillon_Medida_Profundidad,
 	Sillon_Medida_Precio 
 FROM gd_esquema.Maestra 
-WHERE Sillon_Medida_Precio IS NOT NULL
+WHERE Sillon_Medida_Alto IS NOT NULL 
+	AND Sillon_Medida_Ancho IS NOT NULL 
+	AND Sillon_Medida_Profundidad IS NOT NULL
+
 
 INSERT INTO DD.Modelo (
 	Modelo_Codigo,
@@ -292,24 +402,25 @@ INSERT INTO DD.Localidad (
 SELECT DISTINCT 
 	Cliente_Localidad, 
 	Provincia_ID
-FROM gd_esquema.Maestra mas
-JOIN  DD.Provincia p ON p.Provincia_Nombre = mas.Cliente_Provincia
+FROM gd_esquema.Maestra 
+JOIN  DD.Provincia ON Provincia_Nombre = Cliente_Provincia
 
 UNION
 
 SELECT DISTINCT 
 	Proveedor_Localidad, 
 	Provincia_ID
-FROM gd_esquema.Maestra mas
-JOIN  DD.Provincia p ON p.Provincia_Nombre = mas.Proveedor_Provincia
+FROM gd_esquema.Maestra 
+JOIN DD.Provincia ON Provincia_Nombre = Proveedor_Provincia
 
 UNION
 
 SELECT DISTINCT 
 	Sucursal_Localidad, 
 	Provincia_ID
-FROM gd_esquema.Maestra mas
-JOIN  DD.Provincia p ON p.Provincia_Nombre = mas.Sucursal_Provincia
+FROM gd_esquema.Maestra 
+JOIN DD.Provincia ON Provincia_Nombre = Sucursal_Provincia
+
 
 INSERT INTO DD.Tela (
 	Tela_ID,
@@ -321,8 +432,10 @@ SELECT DISTINCT
 	Tela_Color, 
 	Tela_Textura
 FROM gd_esquema.Maestra mas
-JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre AND mat.Material_Descripcion = mas.Material_Descripcion
+JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre
+	AND mat.Material_Descripcion = mas.Material_Descripcion
 WHERE mat.Material_Tipo = 'TELA'
+
 
 INSERT INTO DD.Madera (
 	Madera_ID,
@@ -334,8 +447,10 @@ SELECT DISTINCT
 	Madera_Color, 
 	Madera_Dureza
 FROM gd_esquema.Maestra mas
-JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre AND mat.Material_Descripcion = mas.Material_Descripcion
+JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre
+	AND mat.Material_Descripcion = mas.Material_Descripcion
 WHERE mat.Material_Tipo = 'MADERA'
+
 
 INSERT INTO DD.Relleno (
 	Relleno_ID,
@@ -345,11 +460,11 @@ SELECT DISTINCT
 	Material_ID, 
 	Relleno_Densidad
 FROM gd_esquema.Maestra mas
-JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre AND mat.Material_Descripcion = mas.Material_Descripcion
+JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre
+	AND mat.Material_Descripcion = mas.Material_Descripcion
 WHERE mat.Material_Tipo = 'RELLENO'
 
 --Nivel 3
-
 INSERT INTO DD.Domicilio (
 	Domicilio_Direccion,
 	Domicilio_Localidad
@@ -357,9 +472,9 @@ INSERT INTO DD.Domicilio (
 SELECT DISTINCT 
 	Sucursal_Direccion, 
 	Localidad_ID  
-FROM gd_esquema.Maestra mas
-JOIN DD.Localidad l ON l.Localidad_Nombre = mas.Sucursal_Localidad
-JOIN DD.Provincia p ON p.Provincia_ID = l.Localidad_Provincia 
+FROM gd_esquema.Maestra
+JOIN DD.Localidad ON Localidad_Nombre = Sucursal_Localidad
+JOIN DD.Provincia ON Provincia_ID = Localidad_Provincia
 WHERE Provincia_Nombre = Sucursal_Provincia 
 
 UNION
@@ -367,20 +482,20 @@ UNION
 SELECT DISTINCT 
 	Cliente_Direccion, 
 	Localidad_ID
-FROM gd_esquema.Maestra mas
-JOIN DD.Localidad l ON l.Localidad_Nombre = mas.Cliente_Localidad
-JOIN DD.Provincia p ON p.Provincia_ID = l.Localidad_Provincia 
-WHERE Provincia_Nombre = Cliente_Provincia 
+FROM gd_esquema.Maestra
+JOIN DD.Localidad ON Localidad_Nombre = Cliente_Localidad
+JOIN DD.Provincia ON Provincia_ID = Localidad_Provincia
+WHERE Provincia_Nombre = Cliente_Provincia
 
 UNION
 
 SELECT DISTINCT 
 	Proveedor_Direccion, 
 	Localidad_ID
-FROM gd_esquema.Maestra mas
-JOIN DD.Localidad l ON l.Localidad_Nombre = mas.Proveedor_Localidad
-JOIN DD.Provincia p ON p.Provincia_ID = l.Localidad_Provincia 
-WHERE Provincia_Nombre = Proveedor_Provincia 
+FROM gd_esquema.Maestra
+JOIN DD.Localidad ON Localidad_Nombre = Proveedor_Localidad
+JOIN DD.Provincia ON Provincia_ID = Localidad_Provincia
+WHERE Provincia_Nombre = Proveedor_Provincia
 
 -- No se pueden insertar los 3 materiales a la vez
 INSERT INTO DD.Sillon (
@@ -390,28 +505,38 @@ INSERT INTO DD.Sillon (
 	Sillon_Tela
 )
 SELECT DISTINCT 
-    sillon_codigo, 
+    Sillon_codigo, 
     Medida_ID, 
     Sillon_Modelo_Codigo, 
     Material_ID
 FROM gd_esquema.Maestra mas
-JOIN DD.Medida ON Sillon_Medida_Alto = Medida_Alto AND Sillon_Medida_Ancho = Medida_Ancho AND Sillon_Medida_Profundidad = Medida_Profundidad
-JOIN DD.Material mat ON mat.Material_Tipo = 'TELA' AND mat.Material_Nombre = mas.Material_Nombre  AND mat.Material_Descripcion =mas.Material_Descripcion
+JOIN DD.Medida ON Sillon_Medida_Alto = Medida_Alto
+	AND Sillon_Medida_Ancho = Medida_Ancho
+	AND Sillon_Medida_Profundidad = Medida_Profundidad
+JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre
+	AND mat.Material_Descripcion = mas.Material_Descripcion
+WHERE mat.Material_Tipo = 'TELA'
 
 UPDATE DD.Sillon
 SET Sillon_Madera = mat.Material_ID
 FROM DD.Sillon
 JOIN gd_esquema.Maestra mas ON DD.Sillon.Sillon_Codigo  = mas.Sillon_Codigo
-JOIN DD.Material mat ON mat.Material_Tipo = 'MADERA' AND mat.Material_Nombre = mas.Material_Nombre  AND mat.Material_Descripcion =mas.Material_Descripcion
+JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre
+	AND mat.Material_Descripcion = mas.Material_Descripcion
+WHERE mat.Material_Tipo = 'MADERA'
+	AND Sillon_Madera IS NULL
+
 
 UPDATE DD.Sillon
 SET Sillon_Relleno = mat.Material_ID
 FROM DD.Sillon
 JOIN gd_esquema.Maestra mas ON DD.Sillon.Sillon_Codigo = mas.Sillon_Codigo
-JOIN DD.Material mat ON mat.Material_Tipo = 'TELA' AND mat.Material_Nombre = mas.Material_Nombre  AND mat.Material_Descripcion =mas.Material_Descripcion
+JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre
+	AND mat.Material_Descripcion = mas.Material_Descripcion
+WHERE mat.Material_Tipo = 'Relleno'
+	AND Sillon_Relleno IS NULL
 
 -- Nivel 4
-
 INSERT INTO DD.Cliente (
 	Cliente_Dni, 
 	Cliente_Domicilio,
@@ -430,11 +555,12 @@ SELECT DISTINCT
 	Cliente_FechaNacimiento,
 	Cliente_Mail
 FROM gd_esquema.Maestra mas
-JOIN DD.Domicilio d ON d.Domicilio_Direccion  = mas.Cliente_Direccion 
-JOIN DD.Localidad l ON l.Localidad_ID = d.Domicilio_Localidad 
-JOIN DD.Provincia p ON p.Provincia_ID  = l.Localidad_Provincia 
-WHERE Cliente_Localidad = Localidad_Nombre 
-AND Cliente_Provincia = Provincia_Nombre 
+JOIN DD.Domicilio ON Domicilio_Direccion  = Cliente_Direccion
+JOIN DD.Localidad ON Localidad_ID = Domicilio_Localidad
+JOIN DD.Provincia ON Provincia_ID  = Localidad_Provincia
+WHERE Cliente_Localidad = Localidad_Nombre
+	AND Cliente_Provincia = Provincia_Nombre
+
 
 INSERT INTO DD.Sucursal (
 	Sucursal_Numero,
@@ -447,12 +573,12 @@ SELECT DISTINCT
 	Domicilio_ID,
 	Sucursal_telefono,
 	Sucursal_mail
-FROM gd_esquema.Maestra mas
-JOIN DD.Domicilio d ON d.Domicilio_Direccion = mas.Sucursal_Direccion
-JOIN DD.Localidad l ON l.Localidad_ID = d.Domicilio_Localidad 
-JOIN DD.Provincia p ON p.Provincia_ID  = l.Localidad_Provincia 
+FROM gd_esquema.Maestra
+JOIN DD.Domicilio ON Domicilio_Direccion = Sucursal_Direccion
+JOIN DD.Localidad ON Localidad_ID = Domicilio_Localidad 
+JOIN DD.Provincia ON Provincia_ID  = Localidad_Provincia 
 WHERE Sucursal_Localidad  = Localidad_Nombre 
-AND Sucursal_Provincia  = Provincia_Nombre 
+	AND Sucursal_Provincia  = Provincia_Nombre 
 
 INSERT INTO DD.Proveedor (
 	Proveedor_Cuit,
@@ -467,15 +593,14 @@ SELECT DISTINCT
 	Domicilio_ID,
 	Proveedor_Telefono,
 	Proveedor_Mail 
-FROM gd_esquema.Maestra mas
-JOIN DD.Domicilio d ON d.Domicilio_Direccion  = mas.Proveedor_Direccion  
-JOIN DD.Localidad l ON l. Localidad_ID = d.Domicilio_Localidad 
-JOIN DD.Provincia p ON p.Provincia_ID  = l.Localidad_Provincia 
+FROM gd_esquema.Maestra
+JOIN DD.Domicilio ON Domicilio_Direccion  = Proveedor_Direccion  
+JOIN DD.Localidad ON  Localidad_ID = Domicilio_Localidad 
+JOIN DD.Provincia ON Provincia_ID  = Localidad_Provincia 
 WHERE Proveedor_Localidad  = Localidad_Nombre 
-AND Proveedor_Provincia  = Provincia_Nombre 
+	AND Proveedor_Provincia  = Provincia_Nombre 
 
 -- Nivel 5
-
 INSERT INTO DD.Pedido (
 	Pedido_Numero,
 	Pedido_Sucursal,
@@ -494,7 +619,10 @@ SELECT DISTINCT
 FROM gd_esquema.Maestra mas
 JOIN DD.Sucursal s ON s.Sucursal_Numero = mas.Sucursal_NroSucursal
 JOIN DD.Cliente c ON c.Cliente_DNI = mas.Cliente_Dni
-WHERE Pedido_Numero IS NOT NULL
+	AND c.Cliente_Apellido = mas.Cliente_Apellido
+	AND c.Cliente_Nombre = mas.Cliente_Nombre
+WHERE Pedido_Numero IS NOT NULL AND Factura_Numero IS NULL
+
 
 INSERT INTO DD.Compra (
 	Compra_Numero,
@@ -515,7 +643,6 @@ JOIN DD.Proveedor p ON p.Proveedor_CUIT = mas.Proveedor_Cuit
 WHERE Compra_Numero IS NOT NULL
 
 -- Nivel 6
-
 INSERT INTO DD.Cancelacion (
 	Cancelacion_Pedido,
 	Cancelacion_Fecha,
@@ -528,6 +655,7 @@ SELECT DISTINCT
 FROM gd_esquema.Maestra mas
 WHERE Pedido_Cancelacion_Motivo IS NOT NULL
 
+
 INSERT INTO DD.Factura (
 	Factura_Numero,
 	Factura_Cliente,
@@ -539,15 +667,16 @@ INSERT INTO DD.Factura (
 SELECT DISTINCT
 	Factura_Numero,
 	Cliente_ID,
-	Sucursal_NroSucursal,   -- FK
-	Pedido_Numero,			-- FK
+	Sucursal_NroSucursal,
+	Pedido_Numero,
 	Factura_Fecha,
 	Factura_Total
 FROM gd_esquema.Maestra mas
 JOIN DD.Cliente c on c.Cliente_DNI = mas.Cliente_Dni
+	AND c.Cliente_Apellido = mas.Cliente_Apellido
+	AND c.Cliente_Nombre = mas.Cliente_Nombre
 WHERE Factura_Numero IS NOT NULL AND Pedido_Numero IS NOT NULL
 
--- en una fila con pedido_numero, numero_factura y cliente_dni, como sabes si el dni es del que pidio o el que hizo la factura?
 
 INSERT INTO DD.Detalle_Compra (
 	Detalle_Compra_Compra,
@@ -564,7 +693,10 @@ SELECT DISTINCT
 	Detalle_Compra_SubTotal
 FROM gd_esquema.Maestra mas
 JOIN DD.Material mat ON mat.Material_Nombre = mas.Material_Nombre
+	AND mat.Material_Descripcion = mas.Material_Descripcion
+	AND mat.Material_Tipo = mas.Material_Tipo
 WHERE Compra_Numero IS NOT NULL
+
 
 INSERT INTO DD.Detalle_Pedido (
 	Detalle_Pedido_Sillon,
@@ -580,9 +712,8 @@ SELECT DISTINCT
 	Detalle_Pedido_Precio,
 	Detalle_Pedido_SubTotal
 FROM gd_esquema.Maestra mas
-WHERE Detalle_Pedido_Cantidad IS NOT NULL AND Sillon_Codigo IS NOT NULL
--- hay filas con detalle_pedido_cantidad != null && sillon_codigo = null (pareciera ser que es por que corresponden a detalles
--- de factura y tienen tambien el detalle pedido asociado) => filtramos solo los detalle pedido que tienen un sillon_codigo
+WHERE Detalle_Pedido_Cantidad IS NOT NULL
+	AND Sillon_Codigo IS NOT NULL
 
 -- Nivel 7
 INSERT INTO DD.Envio (
@@ -616,9 +747,9 @@ INSERT INTO DD.Detalle_Factura(
 SELECT DISTINCT
 	Detalle_Pedido_Sillon,
 	Factura_Numero,
-	det.Detalle_Pedido_Cantidad,
-	det.Detalle_Pedido_Precio,
-	det.Detalle_Pedido_SubTotal
-FROM gd_esquema.Maestra mas
-JOIN DD.Detalle_Pedido det ON Detalle_Pedido_Pedido = Pedido_Numero
+	Detalle_Pedido_Cantidad,
+	Detalle_Pedido_Precio,
+	Detalle_Pedido_SubTotal
+FROM DD.Detalle_Pedido
+JOIN  DD.Factura ON Detalle_Pedido_Pedido = Factura_Pedido
 WHERE Factura_Numero IS NOT NULL
