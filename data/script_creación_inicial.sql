@@ -299,7 +299,7 @@ BEGIN
 	IF EXISTS (
 		SELECT 1
 		FROM inserted 
-		LEFT JOIN DROP_DATABSE.Madera ON Madera_ID = Sillon_Tela
+		LEFT JOIN DROP_DATABSE.Madera ON Madera_ID = Sillon_Madera
 		WHERE Sillon_Madera IS NOT NULL AND Madera_ID IS NULL
 	)
 		THROW 50004, 'El tipo de Sillon_Madera debe ser MADERA.', 1;
@@ -313,7 +313,7 @@ BEGIN
 	IF EXISTS (
 		SELECT 1
 		FROM inserted 
-		LEFT JOIN DROP_DATABSE.Relleno ON Relleno_ID = Sillon_Tela
+		LEFT JOIN DROP_DATABSE.Relleno ON Relleno_ID = Sillon_Relleno
 		WHERE Sillon_Relleno IS NOT NULL AND Relleno_ID IS NULL
 	)
 		THROW 50006, 'El tipo de Sillon_Relleno debe ser RELLENO.', 1;
