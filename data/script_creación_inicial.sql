@@ -500,23 +500,36 @@ WHERE Provincia_Nombre = Proveedor_Provincia
 INSERT INTO DROP_DATABSE.Sillon (
 	Sillon_Codigo, 
 	Sillon_Medida, 
-	Sillon_Modelo, 
-	Sillon_Tela
+	Sillon_Modelo,
+	Sillon_Tela, 
+	Sillon_Madera,
+	Sillon_Relleno
 )
 SELECT DISTINCT 
-    Sillon_codigo, 
+    mas.Sillon_codigo, 
     Medida_ID, 
-    Sillon_Modelo_Codigo, 
-    Material_ID
+    mas.Sillon_Modelo_Codigo, 
+    mat.Material_ID,
+	mat2.Material_ID,
+	mat3.Material_ID
 FROM gd_esquema.Maestra mas
 JOIN DROP_DATABSE.Medida ON Sillon_Medida_Alto = Medida_Alto
 	AND Sillon_Medida_Ancho = Medida_Ancho
 	AND Sillon_Medida_Profundidad = Medida_Profundidad
+JOIN gd_esquema.Maestra mas2 ON mas2.Sillon_Codigo = mas.Sillon_Codigo
+	and mas2.Material_Tipo = 'MADERA'
+JOIN gd_esquema.Maestra mas3 ON mas3.Sillon_Codigo = mas.Sillon_Codigo
+	AND mas3.Material_Tipo = 'RELLENO'
 JOIN DROP_DATABSE.Material mat ON mat.Material_Nombre = mas.Material_Nombre
 	AND mat.Material_Descripcion = mas.Material_Descripcion
-WHERE mat.Material_Tipo = 'TELA'
+JOIN DROP_DATABSE.Material mat2 ON mat2.Material_Nombre = mas2.Material_Nombre
+	AND mat2.Material_Descripcion = mas2.Material_Descripcion
+JOIN DROP_DATABSE.Material mat3 ON mat3.Material_Nombre = mas3.Material_Nombre
+	AND mat3.Material_Descripcion = mas3.Material_Descripcion
+WHERE mas.Material_Tipo = 'TELA'
 
-UPDATE DROP_DATABSE.Sillon
+
+/*UPDATE DROP_DATABSE.Sillon
 SET Sillon_Madera = mat.Material_ID
 FROM DROP_DATABSE.Sillon
 JOIN gd_esquema.Maestra mas ON DROP_DATABSE.Sillon.Sillon_Codigo  = mas.Sillon_Codigo
@@ -534,7 +547,7 @@ JOIN DROP_DATABSE.Material mat ON mat.Material_Nombre = mas.Material_Nombre
 	AND mat.Material_Descripcion = mas.Material_Descripcion
 WHERE mat.Material_Tipo = 'Relleno'
 	AND Sillon_Relleno IS NULL
-
+*/
 -- Nivel 4
 INSERT INTO DROP_DATABSE.Cliente (
 	Cliente_Dni, 
