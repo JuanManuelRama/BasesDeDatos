@@ -528,26 +528,6 @@ JOIN DROP_DATABSE.Material mat3 ON mat3.Material_Nombre = mas3.Material_Nombre
 	AND mat3.Material_Descripcion = mas3.Material_Descripcion
 WHERE mas.Material_Tipo = 'TELA'
 
-
-/*UPDATE DROP_DATABSE.Sillon
-SET Sillon_Madera = mat.Material_ID
-FROM DROP_DATABSE.Sillon
-JOIN gd_esquema.Maestra mas ON DROP_DATABSE.Sillon.Sillon_Codigo  = mas.Sillon_Codigo
-JOIN DROP_DATABSE.Material mat ON mat.Material_Nombre = mas.Material_Nombre
-	AND mat.Material_Descripcion = mas.Material_Descripcion
-WHERE mat.Material_Tipo = 'MADERA'
-	AND Sillon_Madera IS NULL
-
-
-UPDATE DROP_DATABSE.Sillon
-SET Sillon_Relleno = mat.Material_ID
-FROM DROP_DATABSE.Sillon
-JOIN gd_esquema.Maestra mas ON DROP_DATABSE.Sillon.Sillon_Codigo = mas.Sillon_Codigo
-JOIN DROP_DATABSE.Material mat ON mat.Material_Nombre = mas.Material_Nombre
-	AND mat.Material_Descripcion = mas.Material_Descripcion
-WHERE mat.Material_Tipo = 'Relleno'
-	AND Sillon_Relleno IS NULL
-*/
 -- Nivel 4
 INSERT INTO DROP_DATABSE.Cliente (
 	Cliente_Dni, 
