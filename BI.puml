@@ -1,0 +1,70 @@
+@startuml BI
+hide methods
+
+entity Sucursal {
+    sucursal_id : bigint
+    --
+    sucursal_ubicacion <<FK>>
+}
+
+entity Cliente {
+    cliente_id <<auto>>
+    --
+    cliente_minimo : int
+    cliente_maximo : int
+    cliente_rango : varchar(5)
+}
+
+entity Provincia {
+    provincia_id <<auto>>
+    --
+    provincia_nombre : varchar(50)
+}
+
+entity Ubicacion {
+    ubicacion_id <<auto>>
+    --
+    ubicacion_localidad : varchar(50)
+    ubicacion_provincia <<FK>>
+}
+
+entity Modelo {
+    modelo_id : bigint
+    --
+    modelo_nombre : varchar(50)
+}
+
+entity Fecha {
+    fecha_id <<auto>>
+    --
+    fecha_mes : int
+    fecha_año : int
+    fecha_cuatrimestre : int
+}
+
+entity Factura {
+    factura_id : bigint
+}
+
+entity fact_table_facturas {
+    id_fecha <<FK>>
+    id_sucursal <<FK>>
+    id_modelo <<FK>>
+    id_cliente <<FK>>
+    id_factura <<FK>>
+    --
+    fact_total
+}
+
+fact_table_facturas --> Cliente
+fact_table_facturas --> Sucursal
+Fecha <-- fact_table_facturas
+Modelo <-- fact_table_facturas
+fact_table_facturas --> Factura
+
+Sucursal --> Ubicacion
+Ubicacion -->Provincia
+
+
+
+@enduml
