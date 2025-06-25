@@ -1,3 +1,5 @@
+--------------------------------- SETUP ------------------------------------------------
+
 USE GD1C2025
 GO
 
@@ -15,6 +17,7 @@ DROP VIEW IF EXISTS Compra_Por_Tipo_De_Material
 DROP VIEW IF EXISTS Ganancias
 GO
 
+--------------------------------- CREACION TABLAS  ------------------------------------------------
 
 CREATE TABLE BI_Fecha (
 	fecha_id BIGINT IDENTITY(1,1),
@@ -72,6 +75,14 @@ CREATE TABLE BI_Turno (
 	CONSTRAINT UQ_Turno UNIQUE (turno_maximo, turno_minimo, turno_rango)
 )
 
+CREATE TABLE BI_Localidad (
+	localidad_id INT IDENTITY(1,1),
+
+	localidad_nombre nvarchar(255),
+	localidad_provincia nvarchar(255)
+	CONSTRAINT PK_Localidad PRIMARY KEY (localidad_id)
+)
+
 CREATE TABLE BI_Fact_Table_Factura (
 	id_fecha BIGINT,
 	id_cliente BIGINT,
@@ -85,6 +96,18 @@ CREATE TABLE BI_Fact_Table_Factura (
 	CONSTRAINT FK_Fact_Table_Factura_Cliente FOREIGN KEY (id_cliente) REFERENCES BI_Cliente,
 	CONSTRAINT FK_Fact_Table_Factura_Sucursal FOREIGN KEY (id_sucursal) REFERENCES BI_Sucursal,
 	CONSTRAINT FK_Fact_Table_Factura_Modelo FOREIGN KEY (id_modelo) REFERENCES BI_Modelo,
+)
+
+CREATE TABLE BI_Fact_Table_Envio (
+	id_fecha BIGINT,
+	id_localidad BIGINT,
+
+	envio_numero decimal(18, 0),
+	envio_fecha_programada datetime2(6),
+	envio_fecha_entrega datetime2(6),
+	envio_total decimal(18, 2) -- aca solo tomo el total, no traslado y subida (podria tomarse y sumarse)
+	CONSTRAINT FK_Fact_Table_Envio_Fecha FOREIGN KEY (id_fecha) REFERENCES BI_Fecha,
+	CONSTRAINT FK_Fact_Table_Envio_Sucursal FOREIGN KEY (id_localidad) REFERENCES BI_Localidad
 )
 
 CREATE TABLE BI_Fact_Table_Compra (
@@ -118,6 +141,8 @@ CREATE TABLE BI_Fact_Table_Pedido (
 	CONSTRAINT FK_Fact_Table_Pedido_Modelo FOREIGN KEY (id_modelo) REFERENCES BI_Modelo
 )
 GO
+
+--------------------------------- CARGA DIMENSIONES ------------------------------------------------
 
 INSERT INTO BI_Fecha (
 	fecha_año,
@@ -192,9 +217,19 @@ INSERT INTO BI_Turno (
 )
 VALUES (8, 0, 14, 0, '08:00 - 14:00'),
 	   (14, 0, 20, 0, '14:00 - 20:00')
+	   
+INSERT INTO BI_Localidad (
+	localidad_nombre,
+	localidad_provincia
+)
+SELECT l.Localidad_Nombre,
+	   p.Provincia_Nombre
+FROM DROP_DATABASE.Localidad l
+JOIN DROP_DATABASE.Provincia p on l.Localidad_Provincia = p.Provincia_ID
 
 GO
---Tablas de hechos
+
+--------------------------------- CARGA HECHOS ------------------------------------------------
 INSERT INTO BI_Fact_Table_Factura (
 	id_fecha,
 	id_cliente,
@@ -275,7 +310,35 @@ JOIN BI_Sucursal ON BI_Sucursal.sucursal_id = Pedido_Sucursal
 JOIN DROP_DATABASE.Sillon ON Detalle_Pedido_Sillon = Sillon_Codigo
  
 GO
---Vistas
+
+INSERT INTO BI_Fact_Table_Envio (
+	id_fecha,
+	id_localidad,
+
+	envio_numero,
+	envio_fecha_entrega,
+	envio_fecha_programada,
+	envio_total
+)
+SELECT fecha_BI.fecha_id,
+	   localidad_BI.localidad_id, --esto es del cliente
+	   e.Envio_Numero,
+	   e.Envio_Fecha_Entrega,
+	   e.Envio_Fecha_Programada,
+	   e.Envio_Total
+FROM DROP_DATABASE.Envio e
+JOIN DROP_DATABASE.Factura f on e.Envio_Factura = f.Factura_Numero
+JOIN DROP_DATABASE.Cliente c on f.Factura_Cliente = c.Cliente_ID
+JOIN DROP_DATABASE.Domicilio d on c.Cliente_Domicilio = d.Domicilio_ID
+JOIN DROP_DATABASE.Localidad l on d.Domicilio_Localidad = l.Localidad_ID
+JOIN DROP_DATABASE.Provincia p on l.Localidad_Provincia = p.Provincia_ID
+JOIN BI_Fecha fecha_BI ON fecha_BI.fecha_año = YEAR(f.Factura_Fecha)
+			           AND fecha_BI.fecha_mes = MONTH(f.Factura_Fecha)
+JOIN BI_Localidad localidad_BI ON localidad_BI.localidad_nombre = l.Localidad_Nombre
+							   AND localidad_BI.localidad_provincia = p.Provincia_Nombre
+go
+
+--------------------------------- CREACION VISTAS ------------------------------------------------
 CREATE VIEW Ganancias
 AS
 	SELECT SUM(fact_total)
@@ -363,3 +426,20 @@ SELECT Pedido_Sucursal,
 FROM DROP_DATABASE.Pedido
 join  DROP_DATABASE.Factura on Factura_Pedido = Pedido_Numero
 group by Pedido_Sucursal, datepart(QUARTER, Pedido_Fecha)*/
+
+CREATE VIEW PORCENTAJE_CUMPLIMIENTO_ENVIOS
+AS
+	SELECT (count(case when envio_fecha_entrega = envio_fecha_programada then 1 else 0 end) / count(*)) * 100 porcentaje, fecha_mes
+	FROM BI_Fact_Table_Envio
+	JOIN BI_Fecha ON fecha_id = id_fecha
+	GROUP BY fecha_mes
+go
+
+CREATE VIEW LOCALIDADES_CON_MAYOR_COSTO_ENVIO
+AS
+	SELECT TOP 3 localidad_nombre, localidad_provincia
+	FROM BI_Fact_Table_Envio
+	JOIN BI_Localidad ON localidad_id = id_localidad
+	GROUP BY localidad_id, localidad_nombre, localidad_provincia
+	ORDER BY AVG(envio_total) DESC
+GO
