@@ -221,19 +221,17 @@ GO
 --Vistas
 CREATE VIEW Ganancias
 AS
-	SELECT  fecha_año,
-        	fecha_mes,
-        	sucursal_id,
-       		ISNULL(SUM(fact_total),0) - ISNULL(SUM(compra_total),0) AS Ganancias
-	FROM BI_Fecha
-	CROSS JOIN BI_Sucursal
-	LEFT JOIN BI_Fact_Table_Factura ON id_fecha = fecha_id
-									AND id_sucursal = sucursal_id
-	LEFT JOIN BI_Fact_Table_Compra c ON c.id_fecha = fecha_id
-								   AND c.id_sucursal  = sucursal_id
-	GROUP BY fecha_año,
-			 fecha_mes,
-			 sucursal_id
+	SELECT SUM(fact_total)
+		   - ISNULL((SELECT SUM(compra_total)
+		   	  FROM BI_Fact_Table_Compra
+			  JOIN BI_Fecha ON fecha_id = id_fecha
+			  WHERE fecha_mes = f.fecha_mes
+			  	AND id_sucursal = fac.id_sucursal),0) AS Ganancias,
+		   fecha_mes,
+		   id_sucursal
+	FROM BI_Fact_Table_Factura fac
+	JOIN BI_Fecha f ON fecha_id = id_fecha
+	GROUP BY fecha_mes, id_sucursal
 GO
 
 CREATE VIEW Factura_Promedio_Mensual
