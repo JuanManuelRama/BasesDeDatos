@@ -7,7 +7,6 @@ DROP TABLE IF EXISTS BI_Sucursal
 DROP TABLE IF EXISTS BI_Fecha
 DROP TABLE IF EXISTS BI_Cliente
 DROP TABLE IF EXISTS BI_Modelo
-DROP TABLE IF EXISTS BI_Factura
 DROP TABLE IF EXISTS BI_Material
 DROP VIEW IF EXISTS Factura_Promedio_Mensual
 DROP VIEW IF EXISTS Rendimiento_de_modelos
@@ -23,10 +22,9 @@ CREATE TABLE BI_Fecha (
 	fecha_mes INT,
 	fecha_cuatrimestre AS 
 	CASE 
-        WHEN fecha_mes BETWEEN 1 AND 3 THEN 1
-        WHEN fecha_mes BETWEEN 4 AND 6 THEN 2
-        WHEN fecha_mes BETWEEN 7 AND 9 THEN 3
-        ELSE 4
+        WHEN fecha_mes BETWEEN 1 AND 4 THEN 1
+        WHEN fecha_mes BETWEEN 5 AND 8 THEN 2
+        ELSE 3
     END 
 	PERSISTED,
 	CONSTRAINT PK_Fecha PRIMARY KEY (fecha_id),
@@ -56,13 +54,8 @@ CREATE TABLE BI_Modelo (
 	CONSTRAINT PK_Modelo PRIMARY KEY (modelo_id)
 )
 
-CREATE TABLE BI_Factura (
-	factura_id BIGINT,
-	CONSTRAINT PK_Factura PRIMARY KEY (factura_id)
-)
-
 CREATE TABLE BI_Material (
-	material_id  INT IDENTITY(1,1),
+	material_id INT IDENTITY(1,1),
 	material_nombre varchar(50),
 	CONSTRAINT PK_Material PRIMARY KEY (material_id),
 	CONSTRAINT UQ_Material UNIQUE (material_nombre)
@@ -73,7 +66,7 @@ CREATE TABLE BI_Fact_Table_Factura (
 	id_cliente BIGINT,
 	id_sucursal BIGINT,
 	id_modelo BIGINT,
-	id_factura BIGINT,
+	fact_numero BIGINT,
 	fact_precio DECIMAL(12,2),
 	fact_cantidad DECIMAL(12,2),
 	fact_total DECIMAl(12,2),
@@ -81,7 +74,6 @@ CREATE TABLE BI_Fact_Table_Factura (
 	CONSTRAINT FK_Fact_Table_Factura_Cliente FOREIGN KEY (id_cliente) REFERENCES BI_Cliente,
 	CONSTRAINT FK_Fact_Table_Factura_Sucursal FOREIGN KEY (id_sucursal) REFERENCES BI_Sucursal,
 	CONSTRAINT FK_Fact_Table_Factura_Modelo FOREIGN KEY (id_modelo) REFERENCES BI_Modelo,
-	CONSTRAINT FK_Fact_Table_Factura_Factura FOREIGN KEY (id_factura) REFERENCES BI_Factura
 )
 
 CREATE TABLE BI_Fact_Table_Compra (
@@ -156,11 +148,6 @@ SELECT Modelo_Codigo,
 	   Modelo_Nombre
 FROM DROP_DATABASE.Modelo
 
-INSERT INTO BI_Factura (
-	factura_id
-)
-SELECT Factura_Numero
-FROM DROP_DATABASE.Factura
 
 INSERT INTO BI_Material (
 	material_nombre
@@ -175,7 +162,7 @@ INSERT INTO BI_Fact_Table_Factura (
 	id_cliente,
 	id_sucursal,
 	id_modelo,
-	id_factura,
+	fact_numero,
 	fact_cantidad,
 	fact_precio,
 	fact_total
@@ -239,7 +226,7 @@ AS
 	SELECT fecha_año,
 		fecha_cuatrimestre,
 		sucursal_provincia,
-		(SUM(fact_total) / COUNT(DISTINCT id_factura)) / 4 AS Promedio_Facturado
+		(SUM(fact_total) / COUNT(DISTINCT fact_numero)) / 4 AS Promedio_Facturado
 	FROM BI_Fact_Table_Factura
 	JOIN BI_Fecha ON fecha_id = id_fecha
 	JOIN BI_Sucursal ON sucursal_id = id_sucursal
@@ -299,3 +286,10 @@ AS
 			 sucursal_id,
 			 fecha_cuatrimestre
 GO
+/*
+SELECT Pedido_Sucursal,
+		datepart(QUARTER, Pedido_Fecha),
+	   avg(datediff(day, Pedido_Fecha, Factura_Fecha))
+FROM DROP_DATABASE.Pedido
+join  DROP_DATABASE.Factura on Factura_Pedido = Pedido_Numero
+group by Pedido_Sucursal, datepart(QUARTER, Pedido_Fecha)*/

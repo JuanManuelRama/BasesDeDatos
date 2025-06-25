@@ -30,10 +30,6 @@ entity Fecha {
     fecha_cuatrimestre : int
 }
 
-entity Factura {
-    factura_id : bigint
-}
-
 entity Material {
     material_id <<auto>>
     --
@@ -45,8 +41,8 @@ entity fact_table_facturas {
     id_sucursal <<FK>>
     id_modelo <<FK>>
     id_cliente <<FK>>
-    id_factura <<FK>>
     --
+    fact_numero
     fact_precio
     fact_cantidad
     fact_total
@@ -66,7 +62,6 @@ fact_table_facturas --> Cliente
 fact_table_facturas --> Sucursal
 Fecha <-- fact_table_facturas
 Modelo <-- fact_table_facturas
-fact_table_facturas --> Factura
 
 Fecha <-- fact_table_compra
 fact_table_compra --> Sucursal
