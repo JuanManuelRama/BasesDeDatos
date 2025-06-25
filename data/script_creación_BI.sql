@@ -72,7 +72,7 @@ CREATE TABLE BI_Turno (
 	turno_minimo_minutos INT,
 	turno_rango VARCHAR(13),
 	CONSTRAINT PK_Turno PRIMARY KEY (turno_id),
-	CONSTRAINT UQ_Turno UNIQUE (turno_maximo, turno_minimo, turno_rango)
+	CONSTRAINT UQ_Turno UNIQUE (turno_maximo_horas, turno_maximo_minutos, turno_minimo_horas, turno_minimo_minutos, turno_rango)
 )
 
 CREATE TABLE BI_Localidad (
@@ -279,14 +279,14 @@ JOIN BI_Fecha ON fecha_año = YEAR(Compra_Fecha)
 JOIN BI_Material mb ON mb.material_nombre = m.Material_Tipo
 
 INSERT INTO BI_Fact_Table_Pedidos (
-	id_fecha
-    id_turno
-    id_sucursal
-    id_modelo 
-    id_cliente
-    pedido_numero
-    pedido_precio
-    pedido_cantidad
+	id_fecha,
+    id_turno,
+    id_sucursal,
+    id_modelo ,
+    id_cliente,
+    pedido_numero,
+    pedido_precio,
+    pedido_cantidad,
     pedido_total
 )
 SELECT fecha_id,
@@ -303,8 +303,8 @@ JOIN DROP_DATABASE.Detalle_Pedido on Detalle_Pedido_Pedido = Pedido_Numero
 JOIN DROP_DATABASE.Cliente ON Cliente_ID = Pedido_Cliente
 JOIN BI_Fecha ON fecha_año = YEAR(Pedido_Fecha)
 			  AND fecha_mes = MONTH(Pedido_Fecha)
-JOIN BI_Turno ON HOUR(Pedido_fecha) BETWEEN turno_minimo_horas AND turno_maximo_horas
-			  AND MINUTE(Pedido_fecha) BETWEEN turno_minimo_minutos AND turno_maximo_minutos
+JOIN BI_Turno ON (SELECT DATEPART(HOUR, Pedido_fecha)) BETWEEN turno_minimo_horas AND turno_maximo_horas
+			  AND (SELECT DATEPART (MINUTE, Pedido_fecha)) BETWEEN turno_minimo_minutos AND turno_maximo_minutos
 JOIN BI_Cliente ON DATEDIFF(YEAR, Cliente_Fecha_Nacimiento, GETDATE()) BETWEEN cliente_minimo AND cliente_maximo
 JOIN BI_Sucursal ON BI_Sucursal.sucursal_id = Pedido_Sucursal
 JOIN DROP_DATABASE.Sillon ON Detalle_Pedido_Sillon = Sillon_Codigo
