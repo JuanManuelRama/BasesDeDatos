@@ -356,3 +356,20 @@ SELECT Pedido_Sucursal,
 FROM DROP_DATABASE.Pedido
 join  DROP_DATABASE.Factura on Factura_Pedido = Pedido_Numero
 group by Pedido_Sucursal, datepart(QUARTER, Pedido_Fecha)*/
+
+CREATE VIEW PORCENTAJE_CUMPLIMIENTO_ENVIOS
+AS
+	SELECT (count(case when envio_fecha_entrega = envio_fecha_programada then 1 else 0 end) / count(*)) * 100 porcentaje, fecha_mes
+	FROM BI_Fact_Table_Envio
+	JOIN BI_Fecha ON fecha_id = id_fecha
+	GROUP BY fecha_mes
+go
+
+CREATE VIEW LOCALIDADES_CON_MAYOR_COSTO_ENVIO
+AS
+	SELECT TOP 3 localidad_nombre, localidad_provincia
+	FROM BI_Fact_Table_Envio
+	JOIN BI_Localidad ON localidad_id = id_localidad
+	GROUP BY localidad_id, localidad_nombre, localidad_provincia
+	ORDER BY AVG(envio_total) DESC
+GO
