@@ -61,6 +61,17 @@ CREATE TABLE BI_Material (
 	CONSTRAINT UQ_Material UNIQUE (material_nombre)
 )
 
+CREATE TABLE BI_Turno (
+	turno_id BIGINT IDENTITY(1,1),
+	turno_maximo_horas INT,
+	turno_maximo_minutos INT,
+	turno_minimo_horas INT,
+	turno_minimo_minutos INT,
+	turno_rango VARCHAR(13),
+	CONSTRAINT PK_Turno PRIMARY KEY (turno_id),
+	CONSTRAINT UQ_Turno UNIQUE (turno_maximo, turno_minimo, turno_rango)
+)
+
 CREATE TABLE BI_Fact_Table_Factura (
 	id_fecha BIGINT,
 	id_cliente BIGINT,
@@ -88,6 +99,23 @@ CREATE TABLE BI_Fact_Table_Compra (
 	CONSTRAINT FK_Fact_Table_Compra_Sucursal FOREIGN KEY (id_sucursal) REFERENCES BI_Sucursal,
 	CONSTRAINT FK_Fact_Table_Compra_Material FOREIGN KEY (id_material) REFERENCES BI_Material
 
+)
+
+CREATE TABLE BI_Fact_Table_Pedido (
+	id_fecha BIGINT,
+	id_turno BIGINT,
+	id_cliente BIGINT,
+	id_sucursal BIGINT,
+	id_modelo BIGINT,
+	pedido_numero DECIMAL(18,0),
+	pedido_precio DECIMAL(12,2),
+	pedido_cantidad BIGINT,
+	pedido_total DECIMAl(18,2),
+	CONSTRAINT FK_Fact_Table_Pedido_fecha FOREIGN KEY (id_fecha) REFERENCES BI_Fecha,
+	CONSTRAINT FK_Fact_Table_Pedido_turno FOREIGN KEY (id_turno) REFERENCES BI_Turno,
+	CONSTRAINT FK_Fact_Table_Pedido_Ciente FOREIGN KEY (id_cliente) REFERENCES BI_Cliente,
+	CONSTRAINT FK_Fact_Table_Pedido_Sucursal FOREIGN KEY (id_sucursal) REFERENCES BI_Sucursal,
+	CONSTRAINT FK_Fact_Table_Pedido_Modelo FOREIGN KEY (id_modelo) REFERENCES BI_Modelo
 )
 GO
 
@@ -155,6 +183,16 @@ INSERT INTO BI_Material (
 SELECT DISTINCT Material_Tipo
 FROM DROP_DATABASE.Material
 
+INSERT INTO BI_Turno (
+	turno_maximo_horas,
+	turno_maximo_minutos,
+	turno_minimo_horas,
+	turno_minimo_minutos,
+	turno_rango
+)
+VALUES (8, 0, 14, 0, '08:00 - 14:00'),
+	   (14, 0, 20, 0, '14:00 - 20:00')
+
 GO
 --Tablas de hechos
 INSERT INTO BI_Fact_Table_Factura (
@@ -204,6 +242,38 @@ JOIN DROP_DATABASE.Material m ON Material_ID = Detalle_Compra_Material
 JOIN BI_Fecha ON fecha_año = YEAR(Compra_Fecha)
 			  AND fecha_mes = MONTH(Compra_Fecha)
 JOIN BI_Material mb ON mb.material_nombre = m.Material_Tipo
+
+INSERT INTO BI_Fact_Table_Pedidos (
+	id_fecha
+    id_turno
+    id_sucursal
+    id_modelo 
+    id_cliente
+    pedido_numero
+    pedido_precio
+    pedido_cantidad
+    pedido_total
+)
+SELECT fecha_id,
+	   turno_id,
+	   sucursal_id,
+	   Sillon_Modelo,
+	   BI_Cliente.cliente_id,
+	   Pedido_Numero,
+	   Detalle_Pedido_Precio,
+	   Detalle_Pedido_Cantidad,
+	   Detalle_Pedido_Subtotal
+FROM DROP_DATABASE.Pedido
+JOIN DROP_DATABASE.Detalle_Pedido on Detalle_Pedido_Pedido = Pedido_Numero
+JOIN DROP_DATABASE.Cliente ON Cliente_ID = Pedido_Cliente
+JOIN BI_Fecha ON fecha_año = YEAR(Pedido_Fecha)
+			  AND fecha_mes = MONTH(Pedido_Fecha)
+JOIN BI_Turno ON HOUR(Pedido_fecha) BETWEEN turno_minimo_horas AND turno_maximo_horas
+			  AND MINUTE(Pedido_fecha) BETWEEN turno_minimo_minutos AND turno_maximo_minutos
+JOIN BI_Cliente ON DATEDIFF(YEAR, Cliente_Fecha_Nacimiento, GETDATE()) BETWEEN cliente_minimo AND cliente_maximo
+JOIN BI_Sucursal ON BI_Sucursal.sucursal_id = Pedido_Sucursal
+JOIN DROP_DATABASE.Sillon ON Detalle_Pedido_Sillon = Sillon_Codigo
+ 
 GO
 --Vistas
 CREATE VIEW Ganancias
