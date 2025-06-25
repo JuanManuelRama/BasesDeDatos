@@ -1,3 +1,5 @@
+--------------------------------- SETUP ------------------------------------------------
+
 USE GD1C2025
 GO
 
@@ -15,6 +17,7 @@ DROP VIEW IF EXISTS Compra_Por_Tipo_De_Material
 DROP VIEW IF EXISTS Ganancias
 GO
 
+--------------------------------- CREACION TABLAS  ------------------------------------------------
 
 CREATE TABLE BI_Fecha (
 	fecha_id BIGINT IDENTITY(1,1),
@@ -61,6 +64,14 @@ CREATE TABLE BI_Material (
 	CONSTRAINT UQ_Material UNIQUE (material_nombre)
 )
 
+CREATE TABLE BI_Localidad (
+	localidad_id INT IDENTITY(1,1),
+
+	localidad_nombre nvarchar(255),
+	localidad_provincia nvarchar(255)
+	CONSTRAINT PK_Localidad PRIMARY KEY (localidad_id)
+)
+
 CREATE TABLE BI_Fact_Table_Factura (
 	id_fecha BIGINT,
 	id_cliente BIGINT,
@@ -78,14 +89,14 @@ CREATE TABLE BI_Fact_Table_Factura (
 
 CREATE TABLE BI_Fact_Table_Envio (
 	id_fecha BIGINT,
-	id_sucursal BIGINT,
+	id_localidad BIGINT,
 
-	Envio_numero decimal(18, 0),
-	Envio_Fecha_Programada datetime2(6),
-	Envio_Fecha_Entrega datetime2(6),
-	Envio_Total decimal(18, 2) -- aca solo tomo el total, no traslado y subida (podria tomarse y sumarse)
+	envio_numero decimal(18, 0),
+	envio_fecha_programada datetime2(6),
+	envio_fecha_entrega datetime2(6),
+	envio_total decimal(18, 2) -- aca solo tomo el total, no traslado y subida (podria tomarse y sumarse)
 	CONSTRAINT FK_Fact_Table_Envio_Fecha FOREIGN KEY (id_fecha) REFERENCES BI_Fecha,
-	CONSTRAINT FK_Fact_Table_Envio_Sucursal FOREIGN KEY (id_sucursal) REFERENCES BI_Sucursal,
+	CONSTRAINT FK_Fact_Table_Envio_Sucursal FOREIGN KEY (id_localidad) REFERENCES BI_Localidad
 )
 
 CREATE TABLE BI_Fact_Table_Compra (
@@ -102,6 +113,8 @@ CREATE TABLE BI_Fact_Table_Compra (
 
 )
 GO
+
+--------------------------------- CARGA DIMENSIONES ------------------------------------------------
 
 INSERT INTO BI_Fecha (
 	fecha_año,
@@ -167,8 +180,18 @@ INSERT INTO BI_Material (
 SELECT DISTINCT Material_Tipo
 FROM DROP_DATABASE.Material
 
+INSERT INTO BI_Localidad (
+	localidad_nombre,
+	localidad_provincia
+)
+SELECT l.Localidad_Nombre,
+	   p.Provincia_Nombre
+FROM DROP_DATABASE.Localidad l
+JOIN DROP_DATABASE.Provincia p on l.Localidad_Provincia = p.Provincia_ID
+
 GO
---Tablas de hechos
+
+--------------------------------- CARGA HECHOS ------------------------------------------------
 INSERT INTO BI_Fact_Table_Factura (
 	id_fecha,
 	id_cliente,
@@ -217,7 +240,35 @@ JOIN BI_Fecha ON fecha_año = YEAR(Compra_Fecha)
 			  AND fecha_mes = MONTH(Compra_Fecha)
 JOIN BI_Material mb ON mb.material_nombre = m.Material_Tipo
 GO
---Vistas
+
+INSERT INTO BI_Fact_Table_Envio (
+	id_fecha,
+	id_localidad,
+
+	envio_numero,
+	envio_fecha_entrega,
+	envio_fecha_programada,
+	envio_total
+)
+SELECT fecha_BI.fecha_id,
+	   localidad_BI.localidad_id, --esto es del cliente
+	   e.Envio_Numero,
+	   e.Envio_Fecha_Entrega,
+	   e.Envio_Fecha_Programada,
+	   e.Envio_Total
+FROM DROP_DATABASE.Envio e
+JOIN DROP_DATABASE.Factura f on e.Envio_Factura = f.Factura_Numero
+JOIN DROP_DATABASE.Cliente c on f.Factura_Cliente = c.Cliente_ID
+JOIN DROP_DATABASE.Domicilio d on c.Cliente_Domicilio = d.Domicilio_ID
+JOIN DROP_DATABASE.Localidad l on d.Domicilio_Localidad = l.Localidad_ID
+JOIN DROP_DATABASE.Provincia p on l.Localidad_Provincia = p.Provincia_ID
+JOIN BI_Fecha fecha_BI ON fecha_BI.fecha_año = YEAR(f.Factura_Fecha)
+			           AND fecha_BI.fecha_mes = MONTH(f.Factura_Fecha)
+JOIN BI_Localidad localidad_BI ON localidad_BI.localidad_nombre = l.Localidad_Nombre
+							   AND localidad_BI.localidad_provincia = p.Provincia_Nombre
+go
+
+--------------------------------- CREACION VISTAS ------------------------------------------------
 CREATE VIEW Ganancias
 AS
 	SELECT SUM(fact_total)
