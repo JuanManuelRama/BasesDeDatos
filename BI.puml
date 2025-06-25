@@ -36,6 +36,13 @@ entity Material {
     material_nombre
 }
 
+entity Localidad {
+    localidad_id
+    --
+    localidad_nombre
+    localidad_provincia
+}
+
 entity fact_table_facturas {
     id_fecha <<FK>>
     id_sucursal <<FK>>
@@ -58,6 +65,17 @@ entity fact_table_compra {
     compra_total
 }
 
+entity fact_table_envio {
+    id_fecha <<FK>>
+    id_localidad <<FK>>
+    --
+	envio_numero,
+	envio_fecha_programada,
+	envio_fecha_entrega,
+	envio_total 
+}
+
+
 fact_table_facturas --> Cliente
 fact_table_facturas --> Sucursal
 Fecha <-- fact_table_facturas
@@ -67,7 +85,7 @@ Fecha <-- fact_table_compra
 fact_table_compra --> Sucursal
 fact_table_compra --> Material
 
-
-
+Fecha <-- fact_table_envio
+Localidad <-- fact_table_envio
 
 @enduml
