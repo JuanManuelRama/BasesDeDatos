@@ -76,6 +76,18 @@ CREATE TABLE BI_Fact_Table_Factura (
 	CONSTRAINT FK_Fact_Table_Factura_Modelo FOREIGN KEY (id_modelo) REFERENCES BI_Modelo,
 )
 
+CREATE TABLE BI_Fact_Table_Envio (
+	id_fecha BIGINT,
+	id_sucursal BIGINT,
+
+	Envio_numero decimal(18, 0),
+	Envio_Fecha_Programada datetime2(6),
+	Envio_Fecha_Entrega datetime2(6),
+	Envio_Total decimal(18, 2) -- aca solo tomo el total, no traslado y subida (podria tomarse y sumarse)
+	CONSTRAINT FK_Fact_Table_Envio_Fecha FOREIGN KEY (id_fecha) REFERENCES BI_Fecha,
+	CONSTRAINT FK_Fact_Table_Envio_Sucursal FOREIGN KEY (id_sucursal) REFERENCES BI_Sucursal,
+)
+
 CREATE TABLE BI_Fact_Table_Compra (
 	id_fecha BIGINT,
 	id_sucursal BIGINT,
