@@ -47,6 +47,8 @@ entity fact_table_facturas {
     id_cliente <<FK>>
     id_factura <<FK>>
     --
+    fact_precio
+    fact_cantidad
     fact_total
 }
 
@@ -55,6 +57,8 @@ entity fact_table_compra {
     id_sucursal <<FK>>
     id_material <<FK>>
     --
+    compra_precio
+    compra_cantidad
     compra_total
 }
 

@@ -74,6 +74,8 @@ CREATE TABLE BI_Fact_Table_Factura (
 	id_sucursal BIGINT,
 	id_modelo BIGINT,
 	id_factura BIGINT,
+	fact_precio DECIMAL(12,2),
+	fact_cantidad DECIMAL(12,2),
 	fact_total DECIMAl(12,2),
 	CONSTRAINT FK_Fact_Table_Factura_Fecha FOREIGN KEY (id_fecha) REFERENCES BI_Fecha,
 	CONSTRAINT FK_Fact_Table_Factura_Cliente FOREIGN KEY (id_cliente) REFERENCES BI_Cliente,
@@ -86,6 +88,8 @@ CREATE TABLE BI_Fact_Table_Compra (
 	id_fecha BIGINT,
 	id_sucursal BIGINT,
 	id_material INT,
+	compra_precio DECIMAL(12,2),
+	compra_cantidad DECIMAL(12,2),
 	compra_total DECIMAL(12,2),
 	--CONSTRAINT PKFact_Table_Compra PRIMARY KEY (id_fecha, id_sucursal, id_material)
 	CONSTRAINT FK_Fact_Table_Compra_Fecha FOREIGN KEY (id_fecha) REFERENCES BI_Fecha,
@@ -172,6 +176,8 @@ INSERT INTO BI_Fact_Table_Factura (
 	id_sucursal,
 	id_modelo,
 	id_factura,
+	fact_cantidad,
+	fact_precio,
 	fact_total
 )
 SELECT fecha_id, 
@@ -179,6 +185,8 @@ SELECT fecha_id,
 	   sucursal_id,
 	   Sillon_Modelo,
 	   Factura_Numero,
+	   Detalle_Factura_Cantidad,
+	   Detalle_Factura_Precio,
 	   Detalle_Factura_Subtotal
 FROM DROP_DATABASE.Factura
 JOIN DROP_DATABASE.Detalle_Factura ON Detalle_Factura_Factura = Factura_Numero
@@ -193,11 +201,15 @@ INSERT INTO BI_Fact_Table_Compra (
 	id_fecha,
 	id_sucursal,
 	id_material,
+	compra_cantidad,
+	compra_precio,
 	compra_total
 )
 SELECT fecha_id,
        Compra_Sucursal,
 	   mb.material_id,
+	   Detalle_Compra_Cantidad,
+	   Detalle_Compra_Precio,
 	   Detalle_Compra_Subtotal
 FROM DROP_DATABASE.Compra
 JOIN DROP_DATABASE.Detalle_Compra ON Detalle_Compra_Compra = Compra_Numero
@@ -229,7 +241,7 @@ AS
 	SELECT fecha_año,
 		fecha_cuatrimestre,
 		sucursal_provincia,
-		SUM(fact_total) / COUNT(DISTINCT id_factura) AS Promedio_Facturado
+		(SUM(fact_total) / COUNT(DISTINCT id_factura)) / 4 AS Promedio_Facturado
 	FROM BI_Fact_Table_Factura
 	JOIN BI_Fecha ON fecha_id = id_fecha
 	JOIN BI_Sucursal ON sucursal_id = id_sucursal
@@ -265,7 +277,7 @@ AS
 							AND sucursal_localidad = s.sucursal_localidad
 							AND cliente_rango = c.cliente_rango
 						 GROUP BY id_modelo
-						 ORDER BY SUM(fact_total) DESC)
+						 ORDER BY SUM(fact_cantidad) DESC)
 GO
 CREATE VIEW Promedio_De_Compras
 AS
