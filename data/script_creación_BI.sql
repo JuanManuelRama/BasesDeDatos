@@ -76,8 +76,7 @@ CREATE TABLE BI_Turno (
 )
 
 CREATE TABLE BI_Localidad (
-	localidad_id INT IDENTITY(1,1),
-
+	localidad_id BIGINT IDENTITY(1,1),
 	localidad_nombre nvarchar(255),
 	localidad_provincia nvarchar(255)
 	CONSTRAINT PK_Localidad PRIMARY KEY (localidad_id)
@@ -101,7 +100,6 @@ CREATE TABLE BI_Fact_Table_Factura (
 CREATE TABLE BI_Fact_Table_Envio (
 	id_fecha BIGINT,
 	id_localidad BIGINT,
-
 	envio_numero decimal(18, 0),
 	envio_fecha_programada datetime2(6),
 	envio_fecha_entrega datetime2(6),
@@ -131,6 +129,7 @@ CREATE TABLE BI_Fact_Table_Pedido (
 	id_sucursal BIGINT,
 	id_modelo BIGINT,
 	pedido_numero DECIMAL(18,0),
+	pedido_estado VARCHAR(255),
 	pedido_precio DECIMAL(12,2),
 	pedido_cantidad BIGINT,
 	pedido_total DECIMAl(18,2),
@@ -209,10 +208,10 @@ SELECT DISTINCT Material_Tipo
 FROM DROP_DATABASE.Material
 
 INSERT INTO BI_Turno (
-	turno_maximo_horas,
-	turno_maximo_minutos,
 	turno_minimo_horas,
 	turno_minimo_minutos,
+	turno_maximo_horas,
+	turno_maximo_minutos,
 	turno_rango
 )
 VALUES (8, 0, 14, 0, '08:00 - 14:00'),
@@ -278,13 +277,14 @@ JOIN BI_Fecha ON fecha_año = YEAR(Compra_Fecha)
 			  AND fecha_mes = MONTH(Compra_Fecha)
 JOIN BI_Material mb ON mb.material_nombre = m.Material_Tipo
 
-INSERT INTO BI_Fact_Table_Pedidos (
+INSERT INTO BI_Fact_Table_Pedido (
 	id_fecha,
     id_turno,
     id_sucursal,
     id_modelo ,
     id_cliente,
     pedido_numero,
+    pedido_estado,
     pedido_precio,
     pedido_cantidad,
     pedido_total
@@ -295,6 +295,7 @@ SELECT fecha_id,
 	   Sillon_Modelo,
 	   BI_Cliente.cliente_id,
 	   Pedido_Numero,
+	   Pedido_Estado,
 	   Detalle_Pedido_Precio,
 	   Detalle_Pedido_Cantidad,
 	   Detalle_Pedido_Subtotal
@@ -303,13 +304,11 @@ JOIN DROP_DATABASE.Detalle_Pedido on Detalle_Pedido_Pedido = Pedido_Numero
 JOIN DROP_DATABASE.Cliente ON Cliente_ID = Pedido_Cliente
 JOIN BI_Fecha ON fecha_año = YEAR(Pedido_Fecha)
 			  AND fecha_mes = MONTH(Pedido_Fecha)
-JOIN BI_Turno ON (SELECT DATEPART(HOUR, Pedido_fecha)) BETWEEN turno_minimo_horas AND turno_maximo_horas
-			  AND (SELECT DATEPART (MINUTE, Pedido_fecha)) BETWEEN turno_minimo_minutos AND turno_maximo_minutos
+JOIN BI_Turno ON DATEPART(HOUR, Pedido_fecha) BETWEEN turno_minimo_horas AND turno_maximo_horas
+			  AND DATEPART (MINUTE, Pedido_fecha) BETWEEN turno_minimo_minutos AND turno_maximo_minutos
 JOIN BI_Cliente ON DATEDIFF(YEAR, Cliente_Fecha_Nacimiento, GETDATE()) BETWEEN cliente_minimo AND cliente_maximo
 JOIN BI_Sucursal ON BI_Sucursal.sucursal_id = Pedido_Sucursal
 JOIN DROP_DATABASE.Sillon ON Detalle_Pedido_Sillon = Sillon_Codigo
- 
-GO
 
 INSERT INTO BI_Fact_Table_Envio (
 	id_fecha,
@@ -325,7 +324,7 @@ SELECT fecha_BI.fecha_id,
 	   e.Envio_Numero,
 	   e.Envio_Fecha_Entrega,
 	   e.Envio_Fecha_Programada,
-	   e.Envio_Total
+	   e.Envio_Importe_Total
 FROM DROP_DATABASE.Envio e
 JOIN DROP_DATABASE.Factura f on e.Envio_Factura = f.Factura_Numero
 JOIN DROP_DATABASE.Cliente c on f.Factura_Cliente = c.Cliente_ID
@@ -397,6 +396,36 @@ AS
 						 GROUP BY id_modelo
 						 ORDER BY SUM(fact_cantidad) DESC)
 GO
+
+CREATE VIEW Volumen_De_Pedidos
+AS
+	SELECT 
+		fecha_mes AS Mes,
+		sucursal_id AS Sucursal,
+		turno_rango AS Turno,
+		count(*) AS Volumen_Pedidos
+	FROM BI_Fact_Table_Pedido
+	JOIN BI_Turno ON turno_id = id_turno
+	JOIN BI_Sucursal ON sucursal_id = id_sucursal
+	JOIN BI_Fecha ON fecha_id = id_fecha
+	GROUP BY fecha_mes, sucursal_id, turno_rango
+
+GO
+
+CREATE VIEW Conversion_De_Pedidos
+AS
+	SELECT 
+		sucursal_id AS Sucursal,
+		fecha_cuatrimestre AS Cuatrimestre,
+		(100.0 * SUM(CASE WHEN pedido_estado = 'ENTREGADO' THEN 1 ELSE 0 END) / COUNT(*)) AS Porcentaje_Entregados,
+		(100.0 * SUM(CASE WHEN pedido_estado = 'CANCELADO' THEN 1 ELSE 0 END) / COUNT(*)) AS Porcentaje_Cancelados
+	FROM BI_Fact_Table_Pedido
+	JOIN BI_Fecha ON fecha_id = id_fecha
+	JOIN BI_Sucursal ON sucursal_id = id_sucursal
+	GROUP BY sucursal_id, fecha_cuatrimestre
+	
+GO
+
 CREATE VIEW Promedio_De_Compras
 AS
 	SELECT AVG(compra_total) AS promedio_compra_mensual,

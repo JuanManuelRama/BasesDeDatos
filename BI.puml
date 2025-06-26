@@ -39,10 +39,10 @@ entity Material {
 entity Turno {
     turno_id <<auto>>
     --
-    turno_maximo_horas: int
-    turno_maximo_minutos: int
     turno_minimo_horas: int
     turno_minimo_minutos: int
+    turno_maximo_horas: int
+    turno_maximo_minutos: int
     turno_rango: varchar(13)
 }
 
@@ -53,7 +53,7 @@ entity Localidad {
     localidad_provincia
 }
 
-entity fact_table_facturas {
+entity fact_table_factura {
     id_fecha <<FK>>
     id_sucursal <<FK>>
     id_modelo <<FK>>
@@ -75,7 +75,7 @@ entity fact_table_compra {
     compra_total
 }
 
-entity fact_table_pedidos {
+entity fact_table_pedido {
     id_fecha <<FK>>
     id_turno <<FK>>
     id_sucursal <<FK>>
@@ -83,6 +83,7 @@ entity fact_table_pedidos {
     id_cliente <<FK>>
     --
     pedido_numero
+    pedido_estado
     pedido_precio
     pedido_cantidad
     pedido_total
@@ -99,20 +100,20 @@ entity fact_table_envio {
 }
 
 
-fact_table_facturas --> Cliente
-fact_table_facturas --> Sucursal
-Fecha <-- fact_table_facturas
-Modelo <-- fact_table_facturas
+fact_table_factura --> Cliente
+fact_table_factura --> Sucursal
+Fecha <-- fact_table_factura
+Modelo <-- fact_table_factura
 
 Fecha <-- fact_table_compra
 fact_table_compra --> Sucursal
 fact_table_compra --> Material
 
-fact_table_pedidos --> Cliente
-fact_table_pedidos --> Sucursal
-Fecha <-- fact_table_pedidos
-Modelo <-- fact_table_pedidos
-Turno <-- fact_table_pedidos
+fact_table_pedido --> Cliente
+fact_table_pedido --> Sucursal
+Fecha <-- fact_table_pedido
+Modelo <-- fact_table_pedido
+Turno <-- fact_table_pedido
 
 
 
