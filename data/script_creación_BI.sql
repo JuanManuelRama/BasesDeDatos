@@ -32,13 +32,7 @@ CREATE TABLE BI_Fecha (
 	fecha_id BIGINT IDENTITY(1,1),
 	fecha_año INT,
 	fecha_mes INT,
-	fecha_cuatrimestre AS 
-	CASE 
-        WHEN fecha_mes BETWEEN 1 AND 4 THEN 1
-        WHEN fecha_mes BETWEEN 5 AND 8 THEN 2
-        ELSE 3
-    END 
-	PERSISTED,
+	fecha_cuatrimestre AS ((fecha_mes - 1) / 4) + 1 PERSISTED,
 	CONSTRAINT PK_Fecha PRIMARY KEY (fecha_id),
 	CONSTRAINT UQ_Fecha UNIQUE (fecha_año, fecha_mes),
 	CONSTRAINT CK_Fecha_Mes CHECK (fecha_mes BETWEEN 1 AND 12)
