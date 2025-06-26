@@ -7,6 +7,7 @@ DROP TABLE IF EXISTS BI_Fact_Table_Envio
 DROP TABLE IF EXISTS BI_Fact_Table_Pedido
 DROP TABLE IF EXISTS BI_Fact_Table_Factura
 DROP TABLE IF EXISTS BI_Fact_Table_Compra
+DROP TABLE IF EXISTS BI_Fact_Table_Fabricacion
 DROP TABLE IF EXISTS BI_Sucursal
 DROP TABLE IF EXISTS BI_Fecha
 DROP TABLE IF EXISTS BI_Cliente
@@ -14,6 +15,7 @@ DROP TABLE IF EXISTS BI_Modelo
 DROP TABLE IF EXISTS BI_Material
 DROP TABLE IF EXISTS BI_Turno
 DROP TABLE IF EXISTS BI_Localidad
+DROP TABLE IF EXISTS BI_Estado
 DROP VIEW IF EXISTS Factura_Promedio_Mensual
 DROP VIEW IF EXISTS Rendimiento_de_modelos
 DROP VIEW IF EXISTS Promedio_De_Compras
@@ -24,6 +26,7 @@ DROP VIEW IF EXISTS Volumen_de_Pedidos
 DROP VIEW IF EXISTS Conversion_De_Pedidos
 DROP VIEW IF EXISTS PORCENTAJE_CUMPLIMIENTO_ENVIOS
 DROP VIEW IF EXISTS LOCALIDADES_CON_MAYOR_COSTO_ENVIO
+DROP VIEW IF EXISTS Tiempo_Promedio_De_Fabricacion
 GO
 
 --------------------------------- CREACION TABLAS  ------------------------------------------------
@@ -49,8 +52,8 @@ CREATE TABLE BI_Cliente (
 
 CREATE TABLE BI_Sucursal (
 	sucursal_id BIGINT,
-	sucursal_provincia VARCHAR(50),
-	sucursal_localidad VARCHAR(50),
+	sucursal_provincia NVARCHAR(255),
+	sucursal_localidad NVARCHAR(255),
 	CONSTRAINT PK_Sucursal PRIMARY KEY (sucursal_id),
 )
 
@@ -62,7 +65,7 @@ CREATE TABLE BI_Modelo (
 
 CREATE TABLE BI_Material (
 	material_id INT IDENTITY(1,1),
-	material_nombre varchar(50),
+	material_nombre NVARCHAR(255),
 	CONSTRAINT PK_Material PRIMARY KEY (material_id),
 	CONSTRAINT UQ_Material UNIQUE (material_nombre)
 )
@@ -85,15 +88,22 @@ CREATE TABLE BI_Localidad (
 	CONSTRAINT PK_Localidad PRIMARY KEY (localidad_id)
 )
 
+CREATE TABLE BI_Estado (
+	estado_id INT IDENTITY(1,1),
+	estado_nombre NVARCHAR(255),
+	CONSTRAINT PK_Estado PRIMARY KEY (estado_id),
+	CONSTRAINT UQ_Estado UNIQUE (estado_nombre),
+)
+
 CREATE TABLE BI_Fact_Table_Factura (
 	id_fecha BIGINT,
 	id_cliente BIGINT,
 	id_sucursal BIGINT,
 	id_modelo BIGINT,
 	fact_numero BIGINT,
-	fact_precio DECIMAL(12,2),
-	fact_cantidad DECIMAL(12,2),
-	fact_total DECIMAl(12,2),
+	fact_precio DECIMAL(18,2),
+	fact_cantidad DECIMAL(18,0),
+	fact_total DECIMAl(18,2),
 	CONSTRAINT FK_Fact_Table_Factura_Fecha FOREIGN KEY (id_fecha) REFERENCES BI_Fecha,
 	CONSTRAINT FK_Fact_Table_Factura_Cliente FOREIGN KEY (id_cliente) REFERENCES BI_Cliente,
 	CONSTRAINT FK_Fact_Table_Factura_Sucursal FOREIGN KEY (id_sucursal) REFERENCES BI_Sucursal,
@@ -115,9 +125,10 @@ CREATE TABLE BI_Fact_Table_Compra (
 	id_fecha BIGINT,
 	id_sucursal BIGINT,
 	id_material INT,
-	compra_precio DECIMAL(12,2),
-	compra_cantidad DECIMAL(12,2),
-	compra_total DECIMAL(12,2),
+	compra_numero DECIMAL(18,0),
+	compra_precio DECIMAL(18,2),
+	compra_cantidad DECIMAL(18,0),
+	compra_total DECIMAL(18,2),
 	--CONSTRAINT PKFact_Table_Compra PRIMARY KEY (id_fecha, id_sucursal, id_material)
 	CONSTRAINT FK_Fact_Table_Compra_Fecha FOREIGN KEY (id_fecha) REFERENCES BI_Fecha,
 	CONSTRAINT FK_Fact_Table_Compra_Sucursal FOREIGN KEY (id_sucursal) REFERENCES BI_Sucursal,
@@ -130,17 +141,20 @@ CREATE TABLE BI_Fact_Table_Pedido (
 	id_turno BIGINT,
 	id_cliente BIGINT,
 	id_sucursal BIGINT,
-	id_modelo BIGINT,
-	pedido_numero DECIMAL(18,0),
-	pedido_estado VARCHAR(255),
-	pedido_precio DECIMAL(12,2),
+	id_estado INT,
 	pedido_cantidad BIGINT,
-	pedido_total DECIMAl(18,2),
 	CONSTRAINT FK_Fact_Table_Pedido_fecha FOREIGN KEY (id_fecha) REFERENCES BI_Fecha,
 	CONSTRAINT FK_Fact_Table_Pedido_turno FOREIGN KEY (id_turno) REFERENCES BI_Turno,
-	CONSTRAINT FK_Fact_Table_Pedido_Ciente FOREIGN KEY (id_cliente) REFERENCES BI_Cliente,
 	CONSTRAINT FK_Fact_Table_Pedido_Sucursal FOREIGN KEY (id_sucursal) REFERENCES BI_Sucursal,
-	CONSTRAINT FK_Fact_Table_Pedido_Modelo FOREIGN KEY (id_modelo) REFERENCES BI_Modelo
+	CONSTRAINT FK_Fact_Table_Pedido_Estado FOREIGN KEY (id_estado) REFERENCES BI_Estado
+)
+
+CREATE TABLE BI_Fact_Table_Fabricacion (
+	id_fecha BIGINT,
+	id_sucursal BIGINT,
+	fabricacion_tiempo_promedio INT,
+	CONSTRAINT FK_Fact_Table_Fabricacion_fecha FOREIGN KEY (id_fecha) REFERENCES BI_Fecha,
+	CONSTRAINT FK_Fact_Table_Fabricacion_Sucursal FOREIGN KEY (id_sucursal) REFERENCES BI_Sucursal,
 )
 GO
 
@@ -229,6 +243,12 @@ SELECT l.Localidad_Nombre,
 FROM DROP_DATABASE.Localidad l
 JOIN DROP_DATABASE.Provincia p on l.Localidad_Provincia = p.Provincia_ID
 
+INSERT INTO BI_Estado (
+	estado_nombre
+)
+SELECT DISTINCT Pedido_Estado
+FROM DROP_DATABASE.Pedido
+
 GO
 
 --------------------------------- CARGA HECHOS ------------------------------------------------
@@ -263,6 +283,7 @@ INSERT INTO BI_Fact_Table_Compra (
 	id_fecha,
 	id_sucursal,
 	id_material,
+	compra_numero,
 	compra_cantidad,
 	compra_precio,
 	compra_total
@@ -270,6 +291,7 @@ INSERT INTO BI_Fact_Table_Compra (
 SELECT fecha_id,
        Compra_Sucursal,
 	   mb.material_id,
+	   Compra_Numero,
 	   Detalle_Compra_Cantidad,
 	   Detalle_Compra_Precio,
 	   Detalle_Compra_Subtotal
@@ -284,34 +306,26 @@ INSERT INTO BI_Fact_Table_Pedido (
 	id_fecha,
     id_turno,
     id_sucursal,
-    id_modelo ,
-    id_cliente,
-    pedido_numero,
-    pedido_estado,
-    pedido_precio,
-    pedido_cantidad,
-    pedido_total
+    id_estado,
+    pedido_cantidad
 )
 SELECT fecha_id,
 	   turno_id,
 	   sucursal_id,
-	   Sillon_Modelo,
-	   BI_Cliente.cliente_id,
-	   Pedido_Numero,
-	   Pedido_Estado,
-	   Detalle_Pedido_Precio,
-	   Detalle_Pedido_Cantidad,
-	   Detalle_Pedido_Subtotal
+	   estado_id,
+	   COUNT(*)
 FROM DROP_DATABASE.Pedido
-JOIN DROP_DATABASE.Detalle_Pedido on Detalle_Pedido_Pedido = Pedido_Numero
 JOIN DROP_DATABASE.Cliente ON Cliente_ID = Pedido_Cliente
 JOIN BI_Fecha ON fecha_año = YEAR(Pedido_Fecha)
 			  AND fecha_mes = MONTH(Pedido_Fecha)
 JOIN BI_Turno ON DATEPART(HOUR, Pedido_fecha) BETWEEN turno_minimo_horas AND turno_maximo_horas
 			  AND DATEPART (MINUTE, Pedido_fecha) BETWEEN turno_minimo_minutos AND turno_maximo_minutos
-JOIN BI_Cliente ON DATEDIFF(YEAR, Cliente_Fecha_Nacimiento, GETDATE()) BETWEEN cliente_minimo AND cliente_maximo
 JOIN BI_Sucursal ON BI_Sucursal.sucursal_id = Pedido_Sucursal
-JOIN DROP_DATABASE.Sillon ON Detalle_Pedido_Sillon = Sillon_Codigo
+JOIN BI_Estado ON estado_nombre = Pedido_Estado
+GROUP BY fecha_id,
+	     turno_id,
+	     sucursal_id,
+	     estado_id
 
 INSERT INTO BI_Fact_Table_Envio (
 	id_fecha,
@@ -340,6 +354,20 @@ JOIN BI_Localidad localidad_BI ON localidad_BI.localidad_nombre = l.Localidad_No
 							   AND localidad_BI.localidad_provincia = p.Provincia_Nombre
 go
 
+INSERT INTO BI_Fact_Table_Fabricacion (
+	id_fecha,
+	id_sucursal,
+	fabricacion_tiempo_promedio
+)
+SELECT fecha_id,
+	   Pedido_Sucursal,
+	   AVG(datediff(day, Pedido_Fecha, Factura_Fecha))
+FROM DROP_DATABASE.Pedido
+JOIN  DROP_DATABASE.Factura on Factura_Pedido = Pedido_Numero
+JOIN BI_Fecha ON YEAR(Pedido_Fecha) = fecha_año
+			  AND MONTH(Pedido_Fecha) = fecha_mes
+GROUP BY Pedido_Sucursal, fecha_id
+GO
 --------------------------------- CREACION VISTAS ------------------------------------------------
 CREATE VIEW Ganancias
 AS
@@ -403,16 +431,16 @@ GO
 CREATE VIEW Volumen_De_Pedidos
 AS
 	SELECT 
-		fecha_mes AS Mes,
+		fecha_año AS Año,
+		fecha_mes AS Mes,		
 		sucursal_id AS Sucursal,
 		turno_rango AS Turno,
-		count(*) AS Volumen_Pedidos
+		SUM(pedido_cantidad) AS Volumen_Pedidos
 	FROM BI_Fact_Table_Pedido
 	JOIN BI_Turno ON turno_id = id_turno
 	JOIN BI_Sucursal ON sucursal_id = id_sucursal
 	JOIN BI_Fecha ON fecha_id = id_fecha
-	GROUP BY fecha_mes, sucursal_id, turno_rango
-
+	GROUP BY fecha_año, fecha_mes, sucursal_id, turno_rango
 GO
 
 CREATE VIEW Conversion_De_Pedidos
@@ -420,19 +448,29 @@ AS
 	SELECT 
 		sucursal_id AS Sucursal,
 		fecha_cuatrimestre AS Cuatrimestre,
-		(100.0 * SUM(CASE WHEN pedido_estado = 'ENTREGADO' THEN 1 ELSE 0 END) / COUNT(*)) AS Porcentaje_Entregados,
-		(100.0 * SUM(CASE WHEN pedido_estado = 'CANCELADO' THEN 1 ELSE 0 END) / COUNT(*)) AS Porcentaje_Cancelados
+		(100.0 * SUM(CASE WHEN estado_nombre = 'ENTREGADO' THEN pedido_cantidad ELSE 0 END) / SUM(pedido_cantidad)) AS Porcentaje_Entregados,
+		(100.0 * SUM(CASE WHEN estado_nombre = 'CANCELADO' THEN pedido_cantidad ELSE 0 END) / SUM(pedido_cantidad)) AS Porcentaje_Cancelados
 	FROM BI_Fact_Table_Pedido
 	JOIN BI_Fecha ON fecha_id = id_fecha
 	JOIN BI_Sucursal ON sucursal_id = id_sucursal
+	JOIN BI_Estado ON estado_id = id_estado
 	GROUP BY sucursal_id, fecha_cuatrimestre
 	
 GO
-
+CREATE VIEW Tiempo_Promedio_De_Fabricacion
+AS
+	SELECT AVG(fabricacion_tiempo_promedio) AS tiempo_promedio_en_dias,
+		   fecha_cuatrimestre AS Cuatrimestre,
+		   id_sucursal AS Sucursal
+	FROM BI_Fact_Table_Fabricacion
+	JOIN BI_Fecha ON fecha_id = id_fecha
+	GROUP BY fecha_cuatrimestre,
+			 id_sucursal
+GO
 CREATE VIEW Promedio_De_Compras
 AS
-	SELECT AVG(compra_total) AS promedio_compra_mensual,
-		   fecha_mes
+	SELECT SUM(compra_total)/COUNT(DISTINCT compra_numero) AS promedio_compra_mensual,
+		   fecha_mes AS mes
 	FROM BI_Fact_Table_Compra
 	JOIN BI_Fecha ON fecha_id = id_fecha
 	GROUP BY fecha_mes
@@ -440,9 +478,9 @@ GO
 CREATE VIEW Compra_Por_Tipo_De_Material
 AS
 	SELECT SUM(compra_total) AS importe_total_gastado,
-		   material_nombre,
-		   sucursal_id,
-		   fecha_cuatrimestre
+		   material_nombre AS Material,
+		   sucursal_id AS Sucursal,
+		   fecha_cuatrimestre AS Cuatrimestre
 	FROM BI_Fact_Table_Compra
 	JOIN BI_Material ON material_id = id_material
 	JOIN BI_Fecha ON fecha_id = id_fecha
@@ -451,21 +489,14 @@ AS
 			 sucursal_id,
 			 fecha_cuatrimestre
 GO
-/*
-SELECT Pedido_Sucursal,
-		datepart(QUARTER, Pedido_Fecha),
-	   avg(datediff(day, Pedido_Fecha, Factura_Fecha))
-FROM DROP_DATABASE.Pedido
-join  DROP_DATABASE.Factura on Factura_Pedido = Pedido_Numero
-group by Pedido_Sucursal, datepart(QUARTER, Pedido_Fecha)*/
 
 CREATE VIEW PORCENTAJE_CUMPLIMIENTO_ENVIOS
 AS
-	SELECT 100.0 * (sum(case when envio_fecha_entrega = envio_fecha_programada then 1 else 0 end) / count(*)) porcentaje, fecha_mes
+	SELECT 100.0 * (sum(case when envio_fecha_entrega = envio_fecha_programada then 1.0 else 0.0 end) / count(*)) porcentaje, fecha_mes
 	FROM BI_Fact_Table_Envio
 	JOIN BI_Fecha ON fecha_id = id_fecha
 	GROUP BY fecha_mes
-go
+GO
 
 CREATE VIEW LOCALIDADES_CON_MAYOR_COSTO_ENVIO
 AS

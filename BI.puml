@@ -47,10 +47,16 @@ entity Turno {
 }
 
 entity Localidad {
-    localidad_id
+    localidad_id 
     --
     localidad_nombre
     localidad_provincia
+}
+
+entity Estado {
+    estado_id <<auto>>
+    --
+    estado_nombre varchar(50)
 }
 
 entity fact_table_factura {
@@ -70,7 +76,8 @@ entity fact_table_compra {
     id_sucursal <<FK>>
     id_material <<FK>>
     --
-    compra_precio
+    compra_numero : DECIMAL(18,0)
+    compra_precio :
     compra_cantidad
     compra_total
 }
@@ -79,14 +86,9 @@ entity fact_table_pedido {
     id_fecha <<FK>>
     id_turno <<FK>>
     id_sucursal <<FK>>
-    id_modelo <<FK>>
-    id_cliente <<FK>>
+    id_estado <<FK>>
     --
-    pedido_numero
-    pedido_estado
-    pedido_precio
-    pedido_cantidad
-    pedido_total
+    cantidad_pedidos : int
 }
 
 entity fact_table_envio {
@@ -99,6 +101,13 @@ entity fact_table_envio {
 	envio_total 
 }
 
+entity fact_table_fabricacion {
+    id_fecha <<FK>>
+    id_sucursal <<FK>>
+    --
+    fabricacion_tiempo_promedio : int
+}
+
 
 fact_table_factura --> Cliente
 fact_table_factura --> Sucursal
@@ -109,11 +118,15 @@ Fecha <-- fact_table_compra
 fact_table_compra --> Sucursal
 fact_table_compra --> Material
 
-fact_table_pedido --> Cliente
 fact_table_pedido --> Sucursal
+fact_table_pedido --> Estado
 Fecha <-- fact_table_pedido
-Modelo <-- fact_table_pedido
 Turno <-- fact_table_pedido
+
+Fecha <-- fact_table_fabricacion
+fact_table_fabricacion --> Sucursal
+
+
 
 
 
