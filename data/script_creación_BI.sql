@@ -16,17 +16,17 @@ DROP TABLE IF EXISTS DROP_DATABASE.BI_Material
 DROP TABLE IF EXISTS DROP_DATABASE.BI_Turno
 DROP TABLE IF EXISTS DROP_DATABASE.BI_Localidad
 DROP TABLE IF EXISTS DROP_DATABASE.BI_Estado
-DROP VIEW IF EXISTS Factura_Promedio_Mensual
-DROP VIEW IF EXISTS Rendimiento_de_modelos
-DROP VIEW IF EXISTS Promedio_De_Compras
-DROP VIEW IF EXISTS Compra_Por_Tipo_De_Material
-DROP VIEW IF EXISTS Ganancias
-DROP VIEW IF EXISTS Volumen_de_Pedidos
-DROP VIEW IF EXISTS Volumen_de_Pedidos
-DROP VIEW IF EXISTS Conversion_De_Pedidos
-DROP VIEW IF EXISTS PORCENTAJE_CUMPLIMIENTO_ENVIOS
-DROP VIEW IF EXISTS LOCALIDADES_CON_MAYOR_COSTO_ENVIO
-DROP VIEW IF EXISTS Tiempo_Promedio_De_Fabricacion
+DROP VIEW IF EXISTS DROP_DATABASE.Factura_Promedio_Mensual
+DROP VIEW IF EXISTS DROP_DATABASE.Rendimiento_de_modelos
+DROP VIEW IF EXISTS DROP_DATABASE.Promedio_De_Compras
+DROP VIEW IF EXISTS DROP_DATABASE.Compra_Por_Tipo_De_Material
+DROP VIEW IF EXISTS DROP_DATABASE.Ganancias
+DROP VIEW IF EXISTS DROP_DATABASE.Volumen_de_Pedidos
+DROP VIEW IF EXISTS DROP_DATABASE.Volumen_de_Pedidos
+DROP VIEW IF EXISTS DROP_DATABASE.Conversion_De_Pedidos
+DROP VIEW IF EXISTS DROP_DATABASE.PORCENTAJE_CUMPLIMIENTO_ENVIOS
+DROP VIEW IF EXISTS DROP_DATABASE.LOCALIDADES_CON_MAYOR_COSTO_ENVIO
+DROP VIEW IF EXISTS DROP_DATABASE.Tiempo_Promedio_De_Fabricacion
 GO
 
 --------------------------------- CREACION TABLAS  ------------------------------------------------
@@ -369,7 +369,7 @@ JOIN DROP_DATABASE.BI_Fecha ON YEAR(Pedido_Fecha) = fecha_año
 GROUP BY Pedido_Sucursal, fecha_id
 GO
 --------------------------------- CREACION VISTAS ------------------------------------------------
-CREATE VIEW Ganancias
+CREATE VIEW DROP_DATABASE.Ganancias
 AS
 	SELECT SUM(fact_total)
 		   - ISNULL((SELECT SUM(compra_total)
@@ -384,7 +384,7 @@ AS
 	GROUP BY fecha_mes, id_sucursal
 GO
 
-CREATE VIEW Factura_Promedio_Mensual
+CREATE VIEW DROP_DATABASE.Factura_Promedio_Mensual
 AS
 	SELECT fecha_año,
 		fecha_cuatrimestre,
@@ -397,7 +397,7 @@ AS
 			fecha_cuatrimestre, 
 			sucursal_provincia
 GO
-CREATE VIEW Rendimiento_de_modelos
+CREATE VIEW DROP_DATABASE.Rendimiento_de_modelos
 AS
 	SELECT modelo_nombre, 
 		   fecha_año,
@@ -428,7 +428,7 @@ AS
 						 ORDER BY SUM(fact_cantidad) DESC)
 GO
 
-CREATE VIEW Volumen_De_Pedidos
+CREATE VIEW DROP_DATABASE.Volumen_De_Pedidos
 AS
 	SELECT 
 		fecha_año AS Año,
@@ -443,7 +443,7 @@ AS
 	GROUP BY fecha_año, fecha_mes, sucursal_id, turno_rango
 GO
 
-CREATE VIEW Conversion_De_Pedidos
+CREATE VIEW DROP_DATABASE.Conversion_De_Pedidos
 AS
 	SELECT 
 		sucursal_id AS Sucursal,
@@ -457,7 +457,7 @@ AS
 	GROUP BY sucursal_id, fecha_cuatrimestre
 	
 GO
-CREATE VIEW Tiempo_Promedio_De_Fabricacion
+CREATE VIEW DROP_DATABASE.Tiempo_Promedio_De_Fabricacion
 AS
 	SELECT AVG(fabricacion_tiempo_promedio) AS tiempo_promedio_en_dias,
 		   fecha_cuatrimestre AS Cuatrimestre,
@@ -467,7 +467,7 @@ AS
 	GROUP BY fecha_cuatrimestre,
 			 id_sucursal
 GO
-CREATE VIEW Promedio_De_Compras
+CREATE VIEW DROP_DATABASE.Promedio_De_Compras
 AS
 	SELECT SUM(compra_total)/COUNT(DISTINCT compra_numero) AS promedio_compra_mensual,
 		   fecha_mes AS mes
@@ -475,7 +475,7 @@ AS
 	JOIN DROP_DATABASE.BI_Fecha ON fecha_id = id_fecha
 	GROUP BY fecha_mes
 GO
-CREATE VIEW Compra_Por_Tipo_De_Material
+CREATE VIEW DROP_DATABASE.Compra_Por_Tipo_De_Material
 AS
 	SELECT SUM(compra_total) AS importe_total_gastado,
 		   material_nombre AS Material,
@@ -490,7 +490,7 @@ AS
 			 fecha_cuatrimestre
 GO
 
-CREATE VIEW PORCENTAJE_CUMPLIMIENTO_ENVIOS
+CREATE VIEW DROP_DATABASE.PORCENTAJE_CUMPLIMIENTO_ENVIOS
 AS
 	SELECT 100.0 * (sum(case when envio_fecha_entrega = envio_fecha_programada then 1.0 else 0.0 end) / count(*)) porcentaje, fecha_mes
 	FROM DROP_DATABASE.BI_Fact_Table_Envio
@@ -498,7 +498,7 @@ AS
 	GROUP BY fecha_mes
 GO
 
-CREATE VIEW LOCALIDADES_CON_MAYOR_COSTO_ENVIO
+CREATE VIEW DROP_DATABASE.LOCALIDADES_CON_MAYOR_COSTO_ENVIO
 AS
 	SELECT TOP 3 localidad_nombre, localidad_provincia
 	FROM DROP_DATABASE.BI_Fact_Table_Envio
