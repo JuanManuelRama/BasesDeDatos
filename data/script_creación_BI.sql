@@ -461,7 +461,7 @@ group by Pedido_Sucursal, datepart(QUARTER, Pedido_Fecha)*/
 
 CREATE VIEW PORCENTAJE_CUMPLIMIENTO_ENVIOS
 AS
-	SELECT (count(case when envio_fecha_entrega = envio_fecha_programada then 1 else 0 end) / count(*)) * 100 porcentaje, fecha_mes
+	SELECT 100.0 * (sum(case when envio_fecha_entrega = envio_fecha_programada then 1 else 0 end) / count(*)) porcentaje, fecha_mes
 	FROM BI_Fact_Table_Envio
 	JOIN BI_Fecha ON fecha_id = id_fecha
 	GROUP BY fecha_mes
