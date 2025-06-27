@@ -4,8 +4,8 @@ hide methods
 entity Sucursal {
     sucursal_id : bigint
     --
-    sucursal_provincia : varchar(50)
-    sucursal_localidad : varchar(50)
+    sucursal_provincia : nvarchar(255)
+    sucursal_localidad : nvarchar(255)
 }
 
 entity Cliente {
@@ -19,7 +19,7 @@ entity Cliente {
 entity Modelo {
     modelo_id : bigint
     --
-    modelo_nombre : varchar(50)
+    modelo_nombre : nvarchar(255)
 }
 
 entity Fecha {
@@ -47,7 +47,7 @@ entity Turno {
 }
 
 entity Localidad {
-    localidad_id 
+    localidad_id <<auto>>
     --
     localidad_nombre
     localidad_provincia
@@ -56,7 +56,7 @@ entity Localidad {
 entity Estado {
     estado_id <<auto>>
     --
-    estado_nombre varchar(50)
+    estado_nombre nvarchar(255)
 }
 
 entity fact_table_factura {
@@ -65,10 +65,10 @@ entity fact_table_factura {
     id_modelo <<FK>>
     id_cliente <<FK>>
     --
-    fact_numero
-    fact_precio
-    fact_cantidad
-    fact_total
+    fact_numero : bigint
+    fact_precio : decimal(18,2)
+    fact_cantidad : decimal(18,0)
+    fact_total : decimal(18,2)
 }
 
 entity fact_table_compra {
@@ -76,10 +76,10 @@ entity fact_table_compra {
     id_sucursal <<FK>>
     id_material <<FK>>
     --
-    compra_numero : DECIMAL(18,0)
-    compra_precio :
-    compra_cantidad
-    compra_total
+    compra_numero : decimal(18,0)
+    compra_precio : decimal(18,2)
+    compra_cantidad : decimal(18,2)
+    compra_total : decimal(18,2)
 }
 
 entity fact_table_pedido {
@@ -95,10 +95,10 @@ entity fact_table_envio {
     id_fecha <<FK>>
     id_localidad <<FK>>
     --
-	envio_numero,
-	envio_fecha_programada,
-	envio_fecha_entrega,
-	envio_total 
+	envio_numero : decimal(18,2),
+	envio_fecha_programada datetime2(6),
+	envio_fecha_entrega datetime2(6),
+	envio_total decimal(18,2)
 }
 
 entity fact_table_fabricacion {
@@ -125,10 +125,6 @@ Turno <-- fact_table_pedido
 
 Fecha <-- fact_table_fabricacion
 fact_table_fabricacion --> Sucursal
-
-
-
-
 
 Fecha <-- fact_table_envio
 Localidad <-- fact_table_envio
