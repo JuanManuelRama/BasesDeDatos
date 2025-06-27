@@ -1,11 +1,12 @@
 @startuml BI
 hide methods
 
-entity Sucursal {
-    sucursal_id : bigint
+entity Fecha {
+    fecha_id <<auto>>
     --
-    sucursal_provincia : nvarchar(255)
-    sucursal_localidad : nvarchar(255)
+    fecha_mes : int
+    fecha_año : int
+    fecha_cuatrimestre : int
 }
 
 entity Cliente {
@@ -16,24 +17,23 @@ entity Cliente {
     cliente_rango : varchar(5)
 }
 
+entity Sucursal {
+    sucursal_id : bigint
+    --
+    sucursal_provincia : nvarchar(255)
+    sucursal_localidad : nvarchar(255)
+}
+
 entity Modelo {
     modelo_id : bigint
     --
-    modelo_nombre : nvarchar(255)
-}
-
-entity Fecha {
-    fecha_id <<auto>>
-    --
-    fecha_mes : int
-    fecha_año : int
-    fecha_cuatrimestre : int
+    modelo_nombre : nvarchar(50)
 }
 
 entity Material {
     material_id <<auto>>
     --
-    material_nombre
+    material_nombre : nvarchar(255)
 }
 
 entity Turno {
@@ -49,8 +49,8 @@ entity Turno {
 entity Localidad {
     localidad_id <<auto>>
     --
-    localidad_nombre
-    localidad_provincia
+    localidad_nombre : nvarchar(255)
+    localidad_provincia : nvarchar(255)
 }
 
 entity Estado {
@@ -59,74 +59,102 @@ entity Estado {
     estado_nombre nvarchar(255)
 }
 
-entity fact_table_factura {
-    id_fecha <<FK>>
-    id_sucursal <<FK>>
-    id_modelo <<FK>>
-    id_cliente <<FK>>
-    --
-    fact_numero : bigint
-    fact_precio : decimal(18,2)
-    fact_cantidad : decimal(18,0)
-    fact_total : decimal(18,2)
+together {
+
+    entity fact_table_factura {
+        id_fecha <<FK>>
+        id_cliente <<FK>>
+        id_sucursal <<FK>>
+        id_modelo <<FK>>
+        --
+        fact_cantidad_facturas : decimal(18,0)
+        fact_suma_total : decimal(18,2)
+    }
+
+    entity fact_table_modelo {
+        id_fecha <<FK>>
+        id_sucursal <<FK>>
+        id_cliente <<FK>>
+        id_modelo <<FK>>
+        --
+        modelo_cantidad : int
+        modelo_total : decimal(18,2)
+    }
+
+    entity fact_table_envio {
+        id_fecha <<FK>>
+        id_localidad <<FK>>
+        --
+        envio_cantidad_envios : int
+        envio_cumplidos : int
+        envio_suma_costos : decimal(18,2)
+    }
+
+    entity fact_table_compra {
+        id_fecha <<FK>>
+        id_sucursal <<FK>>
+        --
+        compra_cantidad_compras DECIMAL(18,0)
+        compra_suma_total DECIMAL(18,2)
+    }
+
+    entity fact_table_compra_material {
+        id_fecha <<FK>>
+        id_sucursal <<FK>>
+        id_material <<FK>>
+        --
+        material_cantidad : int
+        material_suma_total : decimal(18,2)
+    }
+
+    entity fact_table_pedido {
+        id_fecha <<FK>>
+        id_turno <<FK>>
+        id_cliente <<FK>>
+        id_sucursal <<FK>>
+        id_estado <<FK>>
+        --
+        pedido_cantidad : bigint
+    }
+
+    entity fact_table_fabricacion {
+        id_fecha <<FK>>
+        id_sucursal <<FK>>
+        --
+        fabricacion_tiempo_promedio : int
+    }
+
 }
 
-entity fact_table_compra {
-    id_fecha <<FK>>
-    id_sucursal <<FK>>
-    id_material <<FK>>
-    --
-    compra_numero : decimal(18,0)
-    compra_precio : decimal(18,2)
-    compra_cantidad : decimal(18,2)
-    compra_total : decimal(18,2)
-}
 
-entity fact_table_pedido {
-    id_fecha <<FK>>
-    id_turno <<FK>>
-    id_sucursal <<FK>>
-    id_estado <<FK>>
-    --
-    cantidad_pedidos : int
-}
-
-entity fact_table_envio {
-    id_fecha <<FK>>
-    id_localidad <<FK>>
-    --
-	envio_numero : decimal(18,2),
-	envio_fecha_programada datetime2(6),
-	envio_fecha_entrega datetime2(6),
-	envio_total decimal(18,2)
-}
-
-entity fact_table_fabricacion {
-    id_fecha <<FK>>
-    id_sucursal <<FK>>
-    --
-    fabricacion_tiempo_promedio : int
-}
-
-
+Fecha <-- fact_table_factura
 fact_table_factura --> Cliente
 fact_table_factura --> Sucursal
-Fecha <-- fact_table_factura
 Modelo <-- fact_table_factura
+
+fact_table_modelo --> Fecha
+fact_table_modelo --> Sucursal
+fact_table_modelo --> Cliente
+fact_table_modelo --> Modelo
+
+Fecha <-- fact_table_envio
+Localidad <-- fact_table_envio
 
 Fecha <-- fact_table_compra
 fact_table_compra --> Sucursal
 fact_table_compra --> Material
 
-fact_table_pedido --> Sucursal
-fact_table_pedido --> Estado
+fact_table_compra_material --> Fecha
+fact_table_compra_material --> Sucursal
+fact_table_compra_material --> Material
+
 Fecha <-- fact_table_pedido
 Turno <-- fact_table_pedido
+fact_table_pedido --> Cliente
+fact_table_pedido --> Sucursal
+fact_table_pedido --> Estado
 
 Fecha <-- fact_table_fabricacion
 fact_table_fabricacion --> Sucursal
-
-Fecha <-- fact_table_envio
-Localidad <-- fact_table_envio
 
 @enduml
