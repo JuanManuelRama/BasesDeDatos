@@ -3,6 +3,8 @@
 USE GD1C2025
 GO
 
+DROP TABLE IF EXISTS DROP_DATABASE.BI_Fact_Table_Facturacion_Modelo
+DROP TABLE IF EXISTS DROP_DATABASE.BI_Fact_Table_Compra_Material
 DROP TABLE IF EXISTS DROP_DATABASE.BI_Fact_Table_Envio
 DROP TABLE IF EXISTS DROP_DATABASE.BI_Fact_Table_Pedido
 DROP TABLE IF EXISTS DROP_DATABASE.BI_Fact_Table_Factura
@@ -99,24 +101,33 @@ CREATE TABLE DROP_DATABASE.BI_Fact_Table_Factura (
 	id_fecha BIGINT,
 	id_cliente BIGINT,
 	id_sucursal BIGINT,
-	id_modelo BIGINT,
-	fact_numero BIGINT,
-	fact_precio DECIMAL(18,2),
-	fact_cantidad DECIMAL(18,0),
-	fact_total DECIMAl(18,2),
+	fact_cantidad_facturas DECIMAL(18,0),
+	fact_suma_total DECIMAl(18,2),
+	CONSTRAINT PK_BI_Fact_Table_Factura PRIMARY KEY (id_fecha, id_cliente, id_sucursal),
 	CONSTRAINT FK_BI_Fact_Table_Factura_Fecha FOREIGN KEY (id_fecha) REFERENCES DROP_DATABASE.BI_Fecha,
 	CONSTRAINT FK_BI_Fact_Table_Factura_Cliente FOREIGN KEY (id_cliente) REFERENCES DROP_DATABASE.BI_Cliente,
-	CONSTRAINT FK_BI_Fact_Table_Factura_Sucursal FOREIGN KEY (id_sucursal) REFERENCES DROP_DATABASE.BI_Sucursal,
-	CONSTRAINT FK_BI_Fact_Table_Factura_Modelo FOREIGN KEY (id_modelo) REFERENCES DROP_DATABASE.BI_Modelo,
+	CONSTRAINT FK_BI_Fact_Table_Factura_Sucursal FOREIGN KEY (id_sucursal) REFERENCES DROP_DATABASE.BI_Sucursal
+)
+
+CREATE TABLE DROP_DATABASE.BI_Fact_Table_Facturacion_Modelo (
+	id_fecha BIGINT,
+	id_sucursal BIGINT,
+	id_cliente BIGINT,
+	id_modelo BIGINT,
+	modelo_cantidad INT,
+	modelo_suma_total DECIMAL(18,2),
+	CONSTRAINT PK_BI_Fact_Table_Facturacion_Modelo PRIMARY KEY (id_fecha, id_sucursal, id_cliente, id_modelo),
+	CONSTRAINT FK_BI_Fact_Table_Facturacion_Modelo_Fecha FOREIGN KEY (id_fecha) REFERENCES DROP_DATABASE.BI_Fecha,
+	CONSTRAINT FK_BI_Fact_Table_Facturacion_Modelo_Modelo FOREIGN KEY (id_modelo) REFERENCES DROP_DATABASE.BI_Modelo
 )
 
 CREATE TABLE DROP_DATABASE.BI_Fact_Table_Envio (
 	id_fecha BIGINT,
 	id_localidad BIGINT,
-	envio_numero decimal(18, 0),
-	envio_fecha_programada datetime2(6),
-	envio_fecha_entrega datetime2(6),
-	envio_total decimal(18, 2) -- aca solo tomo el total, no traslado y subida (podria tomarse y sumarse)
+	envio_cantidad_envios INT,
+	envio_cumplidos INT,
+	envio_suma_costos DECIMAL(18,2),
+	CONSTRAINT PK_BI_Fact_Table_Envio PRIMARY KEY (id_fecha, id_localidad),
 	CONSTRAINT FK_BI_Fact_Table_Envio_Fecha FOREIGN KEY (id_fecha) REFERENCES DROP_DATABASE.BI_Fecha,
 	CONSTRAINT FK_BI_Fact_Table_Envio_Sucursal FOREIGN KEY (id_localidad) REFERENCES DROP_DATABASE.BI_Localidad
 )
@@ -124,25 +135,32 @@ CREATE TABLE DROP_DATABASE.BI_Fact_Table_Envio (
 CREATE TABLE DROP_DATABASE.BI_Fact_Table_Compra (
 	id_fecha BIGINT,
 	id_sucursal BIGINT,
-	id_material INT,
-	compra_numero DECIMAL(18,0),
-	compra_precio DECIMAL(18,2),
-	compra_cantidad DECIMAL(18,0),
-	compra_total DECIMAL(18,2),
-	--CONSTRAINT PKFact_Table_Compra PRIMARY KEY (id_fecha, id_sucursal, id_material)
+	compra_cantidad_compras DECIMAL(18,0),
+	compra_suma_total DECIMAL(18,2),
+	CONSTRAINT PK_BI_Fact_Table_Compra PRIMARY KEY (id_fecha, id_sucursal),
 	CONSTRAINT FK_BI_Fact_Table_Compra_Fecha FOREIGN KEY (id_fecha) REFERENCES DROP_DATABASE.BI_Fecha,
-	CONSTRAINT FK_BI_Fact_Table_Compra_Sucursal FOREIGN KEY (id_sucursal) REFERENCES DROP_DATABASE.BI_Sucursal,
-	CONSTRAINT FK_BI_Fact_Table_Compra_Material FOREIGN KEY (id_material) REFERENCES DROP_DATABASE.BI_Material
+	CONSTRAINT FK_BI_Fact_Table_Compra_Sucursal FOREIGN KEY (id_sucursal) REFERENCES DROP_DATABASE.BI_Sucursal
+)
 
+CREATE TABLE DROP_DATABASE.BI_Fact_Table_Compra_Material (
+	id_fecha BIGINT,
+	id_sucursal BIGINT,
+	id_material INT,
+	material_cantidad INT,
+	material_suma_total DECIMAL(18,2),
+	CONSTRAINT PK_BI_Fact_Table_Material PRIMARY KEY (id_fecha, id_sucursal, id_material),
+	CONSTRAINT FK_BI_Fact_Table_Material_Fecha FOREIGN KEY (id_fecha) REFERENCES DROP_DATABASE.BI_Fecha,
+	CONSTRAINT FK_BI_Fact_Table_Material_Sucursal FOREIGN KEY (id_sucursal) REFERENCES DROP_DATABASE.BI_Sucursal,
+	CONSTRAINT FK_BI_Fact_Table_Material_Material FOREIGN KEY (id_material) REFERENCES DROP_DATABASE.BI_Material
 )
 
 CREATE TABLE DROP_DATABASE.BI_Fact_Table_Pedido (
 	id_fecha BIGINT,
 	id_turno BIGINT,
-	id_cliente BIGINT,
 	id_sucursal BIGINT,
 	id_estado INT,
 	pedido_cantidad BIGINT,
+	CONSTRAINT PK_BI_Fact_Table_Pedido PRIMARY KEY (id_fecha, id_turno, id_sucursal, id_estado),
 	CONSTRAINT FK_BI_Fact_Table_Pedido_fecha FOREIGN KEY (id_fecha) REFERENCES DROP_DATABASE.BI_Fecha,
 	CONSTRAINT FK_BI_Fact_Table_Pedido_turno FOREIGN KEY (id_turno) REFERENCES DROP_DATABASE.BI_Turno,
 	CONSTRAINT FK_BI_Fact_Table_Pedido_Sucursal FOREIGN KEY (id_sucursal) REFERENCES DROP_DATABASE.BI_Sucursal,
@@ -256,51 +274,64 @@ INSERT INTO DROP_DATABASE.BI_Fact_Table_Factura (
 	id_fecha,
 	id_cliente,
 	id_sucursal,
-	id_modelo,
-	fact_numero,
-	fact_cantidad,
-	fact_precio,
-	fact_total
+	fact_cantidad_facturas,
+	fact_suma_total
 )
 SELECT fecha_id, 
 	   DROP_DATABASE.BI_Cliente.cliente_id,
-	   sucursal_id,
-	   Sillon_Modelo,
-	   Factura_Numero,
-	   Detalle_Factura_Cantidad,
-	   Detalle_Factura_Precio,
-	   Detalle_Factura_Subtotal
+	   Factura_Sucursal,
+	   COUNT(*),
+	   SUM(Factura_Total)
 FROM DROP_DATABASE.Factura
-JOIN DROP_DATABASE.Detalle_Factura ON Detalle_Factura_Factura = Factura_Numero
 JOIN DROP_DATABASE.Cliente ON Cliente_ID = Factura_Cliente
 JOIN DROP_DATABASE.BI_Fecha ON fecha_año = YEAR(Factura_Fecha)
 			  AND fecha_mes = MONTH(Factura_Fecha)
 JOIN DROP_DATABASE.BI_Cliente ON DATEDIFF(YEAR, Cliente_Fecha_Nacimiento, GETDATE()) BETWEEN cliente_minimo AND cliente_maximo
-JOIN DROP_DATABASE.BI_Sucursal ON DROP_DATABASE.BI_Sucursal.sucursal_id = Factura_Sucursal
-JOIN DROP_DATABASE.Sillon ON Detalle_Factura_Detalle_Pedido = Sillon_Codigo
+GROUP BY fecha_id, 
+	     DROP_DATABASE.BI_Cliente.cliente_id, 
+	     Factura_Sucursal
+
+INSERT INTO DROP_DATABASE.BI_Fact_Table_Facturacion_Modelo (
+	id_fecha,
+	id_sucursal,
+	id_cliente,
+	id_modelo,
+	modelo_cantidad,
+	modelo_suma_total
+)
+SELECT fecha_id,
+	   Pedido_Sucursal,
+	   c.Cliente_ID,
+	   Sillon_Modelo,
+	   SUM(Detalle_Pedido_Cantidad),
+	   SUM(Detalle_Pedido_Subtotal)
+FROM DROP_DATABASE.Pedido
+JOIN DROP_DATABASE.Detalle_Pedido ON Detalle_Pedido_Pedido = Pedido_Numero
+JOIN DROP_DATABASE.Sillon ON Sillon_Codigo = Detalle_Pedido_Sillon
+JOIN DROP_DATABASE.Cliente ON Cliente_ID = Pedido_Cliente
+JOIN DROP_DATABASE.BI_Cliente c ON DATEDIFF(YEAR, Cliente_Fecha_Nacimiento, GETDATE()) BETWEEN cliente_minimo AND cliente_maximo
+JOIN DROP_DATABASE.BI_Fecha ON fecha_año = YEAR(Pedido_Fecha)
+			  AND fecha_mes = MONTH(Pedido_Fecha)
+GROUP BY fecha_id,
+	   Pedido_Sucursal,
+	   c.Cliente_ID,
+	   Sillon_Modelo
 
 INSERT INTO DROP_DATABASE.BI_Fact_Table_Compra (
 	id_fecha,
 	id_sucursal,
-	id_material,
-	compra_numero,
-	compra_cantidad,
-	compra_precio,
-	compra_total
+	compra_cantidad_compras,
+	compra_suma_total
 )
 SELECT fecha_id,
        Compra_Sucursal,
-	   mb.material_id,
-	   Compra_Numero,
-	   Detalle_Compra_Cantidad,
-	   Detalle_Compra_Precio,
-	   Detalle_Compra_Subtotal
+	   COUNT(*),
+	   SUM(Compra_Total)
 FROM DROP_DATABASE.Compra
-JOIN DROP_DATABASE.Detalle_Compra ON Detalle_Compra_Compra = Compra_Numero
-JOIN DROP_DATABASE.Material m ON Material_ID = Detalle_Compra_Material
 JOIN DROP_DATABASE.BI_Fecha ON fecha_año = YEAR(Compra_Fecha)
 			  AND fecha_mes = MONTH(Compra_Fecha)
-JOIN DROP_DATABASE.BI_Material mb ON mb.material_nombre = m.Material_Tipo
+GROUP BY fecha_id,
+		 Compra_Sucursal
 
 INSERT INTO DROP_DATABASE.BI_Fact_Table_Pedido (
 	id_fecha,
@@ -327,21 +358,41 @@ GROUP BY fecha_id,
 	     sucursal_id,
 	     estado_id
 
+INSERT INTO DROP_DATABASE.BI_Fact_Table_Compra_Material (
+	id_fecha,
+	id_sucursal,
+	id_material,
+	material_cantidad,
+	material_suma_total
+)
+SELECT fecha_id,
+       Compra_Sucursal, --ya que coincide con el id del OLAP
+	   mb.material_id,
+	   COUNT(distinct Compra_Numero),
+	   SUM(Detalle_Compra_Subtotal)
+FROM DROP_DATABASE.Compra
+JOIN DROP_DATABASE.Detalle_Compra ON Detalle_Compra_Compra = Compra_Numero
+JOIN DROP_DATABASE.Material m ON Material_ID = Detalle_Compra_Material
+JOIN DROP_DATABASE.BI_Material mb ON mb.material_nombre = m.Material_Tipo
+JOIN DROP_DATABASE.BI_Fecha ON fecha_año = YEAR(Compra_Fecha)
+			  AND fecha_mes = MONTH(Compra_Fecha)
+GROUP BY fecha_id,
+       Compra_Sucursal,
+	   mb.material_id
+
 INSERT INTO DROP_DATABASE.BI_Fact_Table_Envio (
 	id_fecha,
 	id_localidad,
 
-	envio_numero,
-	envio_fecha_entrega,
-	envio_fecha_programada,
-	envio_total
+	envio_cantidad_envios,
+	envio_cumplidos,
+	envio_suma_costos
 )
 SELECT fecha_BI.fecha_id,
-	   localidad_BI.localidad_id, --esto es del cliente
-	   e.Envio_Numero,
-	   e.Envio_Fecha_Entrega,
-	   e.Envio_Fecha_Programada,
-	   e.Envio_Importe_Total
+	   localidad_BI.localidad_id, --esto es del cliente,
+	   COUNT(*),
+	   sum(case when e.envio_fecha_entrega = e.envio_fecha_programada then 1.0 else 0.0 end),
+	   SUM(e.Envio_Importe_Total)
 FROM DROP_DATABASE.Envio e
 JOIN DROP_DATABASE.Factura f on e.Envio_Factura = f.Factura_Numero
 JOIN DROP_DATABASE.Cliente c on f.Factura_Cliente = c.Cliente_ID
@@ -352,7 +403,8 @@ JOIN DROP_DATABASE.BI_Fecha fecha_BI ON fecha_BI.fecha_año = YEAR(f.Factura_Fec
 			           AND fecha_BI.fecha_mes = MONTH(f.Factura_Fecha)
 JOIN DROP_DATABASE.BI_Localidad localidad_BI ON localidad_BI.localidad_nombre = l.Localidad_Nombre
 							   AND localidad_BI.localidad_provincia = p.Provincia_Nombre
-go
+GROUP BY fecha_BI.fecha_id,
+		 localidad_BI.localidad_id
 
 INSERT INTO DROP_DATABASE.BI_Fact_Table_Fabricacion (
 	id_fecha,
@@ -371,8 +423,8 @@ GO
 --------------------------------- CREACION VISTAS ------------------------------------------------
 CREATE VIEW DROP_DATABASE.Ganancias
 AS
-	SELECT SUM(fact_total)
-		   - ISNULL((SELECT SUM(compra_total)
+	SELECT SUM(fact_suma_total)
+		   - ISNULL((SELECT SUM(compra_suma_total)
 		   	  FROM DROP_DATABASE.BI_Fact_Table_Compra
 			  JOIN DROP_DATABASE.BI_Fecha ON fecha_id = id_fecha
 			  WHERE fecha_mes = f.fecha_mes
@@ -389,7 +441,7 @@ AS
 	SELECT fecha_año,
 		fecha_cuatrimestre,
 		sucursal_provincia,
-		(SUM(fact_total) / COUNT(DISTINCT fact_numero)) / 4 AS Promedio_Facturado
+		(SUM(fact_suma_total) / SUM(fact_cantidad_facturas)) / 4 AS Promedio_Facturado
 	FROM DROP_DATABASE.BI_Fact_Table_Factura
 	JOIN DROP_DATABASE.BI_Fecha ON fecha_id = id_fecha
 	JOIN DROP_DATABASE.BI_Sucursal ON sucursal_id = id_sucursal
@@ -404,7 +456,7 @@ AS
 		   fecha_cuatrimestre,
 		   sucursal_localidad,
 		   cliente_rango
-	FROM DROP_DATABASE.BI_Fact_Table_Factura
+	FROM DROP_DATABASE.BI_Fact_Table_Facturacion_Modelo
 	JOIN DROP_DATABASE.BI_Modelo m ON modelo_id = id_modelo
 	JOIN DROP_DATABASE.BI_Fecha f ON fecha_id = id_fecha
 	JOIN DROP_DATABASE.BI_Sucursal s ON sucursal_id = id_sucursal
@@ -416,7 +468,7 @@ AS
 			cliente_rango,
 			modelo_id
 	HAVING modelo_id IN (SELECT TOP 3 id_modelo
-						 FROM DROP_DATABASE.BI_Fact_Table_Factura
+						 FROM DROP_DATABASE.BI_Fact_Table_Facturacion_Modelo
 						 JOIN DROP_DATABASE.BI_Fecha ON id_fecha = fecha_id
 						 JOIN DROP_DATABASE.BI_Sucursal ON id_sucursal = sucursal_id
 						 JOIN DROP_DATABASE.BI_Cliente ON id_cliente = cliente_id
@@ -425,7 +477,7 @@ AS
 							AND sucursal_localidad = s.sucursal_localidad
 							AND cliente_rango = c.cliente_rango
 						 GROUP BY id_modelo
-						 ORDER BY SUM(fact_cantidad) DESC)
+						 ORDER BY SUM(modelo_cantidad) DESC)
 GO
 
 CREATE VIEW DROP_DATABASE.Volumen_De_Pedidos
@@ -469,7 +521,7 @@ AS
 GO
 CREATE VIEW DROP_DATABASE.Promedio_De_Compras
 AS
-	SELECT SUM(compra_total)/COUNT(DISTINCT compra_numero) AS promedio_compra_mensual,
+	SELECT SUM(compra_suma_total)/SUM(compra_cantidad_compras) AS promedio_compra_mensual,
 		   fecha_mes AS mes
 	FROM DROP_DATABASE.BI_Fact_Table_Compra
 	JOIN DROP_DATABASE.BI_Fecha ON fecha_id = id_fecha
@@ -477,11 +529,11 @@ AS
 GO
 CREATE VIEW DROP_DATABASE.Compra_Por_Tipo_De_Material
 AS
-	SELECT SUM(compra_total) AS importe_total_gastado,
+	SELECT SUM(material_suma_total) AS importe_total_gastado,
 		   material_nombre AS Material,
 		   sucursal_id AS Sucursal,
 		   fecha_cuatrimestre AS Cuatrimestre
-	FROM DROP_DATABASE.BI_Fact_Table_Compra
+	FROM DROP_DATABASE.BI_Fact_Table_Compra_Material
 	JOIN DROP_DATABASE.BI_Material ON material_id = id_material
 	JOIN DROP_DATABASE.BI_Fecha ON fecha_id = id_fecha
 	JOIN DROP_DATABASE.BI_Sucursal ON sucursal_id = id_sucursal
@@ -492,7 +544,7 @@ GO
 
 CREATE VIEW DROP_DATABASE.PORCENTAJE_CUMPLIMIENTO_ENVIOS
 AS
-	SELECT 100.0 * (sum(case when envio_fecha_entrega = envio_fecha_programada then 1.0 else 0.0 end) / count(*)) porcentaje, fecha_mes
+	SELECT  (SUM(envio_cumplidos)*1.0 / SUM(envio_cantidad_envios)) * 100 porcentaje, fecha_mes
 	FROM DROP_DATABASE.BI_Fact_Table_Envio
 	JOIN DROP_DATABASE.BI_Fecha ON fecha_id = id_fecha
 	GROUP BY fecha_mes
@@ -504,5 +556,5 @@ AS
 	FROM DROP_DATABASE.BI_Fact_Table_Envio
 	JOIN DROP_DATABASE.BI_Localidad ON localidad_id = id_localidad
 	GROUP BY localidad_id, localidad_nombre, localidad_provincia
-	ORDER BY AVG(envio_total) DESC
+	ORDER BY SUM(envio_suma_costos)/SUM(envio_cantidad_envios) DESC
 GO
